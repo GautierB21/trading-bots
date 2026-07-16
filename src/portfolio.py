@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime, timezone
 from . import db
 
-COMMISSION = 0.001   # 0.1%
+COMMISSION = 0.0026  # 0.26% taker fee (Kraken réel)
 SLIPPAGE   = 0.0005  # 0.05%
 
 
@@ -36,6 +36,13 @@ def execute_order(bot_id, symbol, side, quantity, signal_price):
     """
     conn = db.get_conn()
     try:
+        # Manual transaction acquiring the write lock up front (BEGIN IMMEDIATE),
+        # so the cash read below and the cash write further down are atomic —
+        # otherwise concurrent orders on the same bot (gunicorn --threads 4) can
+        # both read the same stale cash and the second write clobbers the first.
+        conn.isolation_level = None
+        conn.execute("BEGIN IMMEDIATE")
+
         # Apply slippage
         if side == "buy":
             exec_price = signal_price * (1 + SLIPPAGE)

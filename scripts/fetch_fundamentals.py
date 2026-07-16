@@ -260,10 +260,10 @@ FUNDAMENTAL ANALYSIS: {data['ticker']} - {data.get('name', 'Unknown')}
 {'='*70}
 
 INCOME STATEMENT (TTM)
-  Revenue:           {format_currency(inc.get('revenue'), curr)}  ({inc.get('revenue_growth_yoy', 'N/A'):+.1f}% YoY)
+  Revenue:           {format_currency(inc.get('revenue'), curr)}  ({f"{inc.get('revenue_growth_yoy'):+.1f}% YoY" if inc.get('revenue_growth_yoy') is not None else 'N/A YoY'})
   Gross Profit:      {format_currency(inc.get('gross_profit'), curr)}
   Operating Income:  {format_currency(inc.get('operating_income'), curr)}
-  Net Income:        {format_currency(inc.get('net_income'), curr)}  ({inc.get('earnings_growth_yoy', 'N/A'):+.1f}% YoY)
+  Net Income:        {format_currency(inc.get('net_income'), curr)}  ({f"{inc.get('earnings_growth_yoy'):+.1f}% YoY" if inc.get('earnings_growth_yoy') is not None else 'N/A YoY'})
   EPS:               ${inc.get('eps', 'N/A')}
 
 MARGINS
@@ -304,8 +304,8 @@ VALUATION
   EV/EBITDA:         {val.get('ev_to_ebitda', 'N/A')}x
 
 DIVIDENDS
-  Dividend Yield:    {div.get('dividend_yield', 0)*100:.2f}% if div.get('dividend_yield') else 'N/A'
-  Payout Ratio:      {div.get('payout_ratio', 0)*100:.1f}% if div.get('payout_ratio') else 'N/A'
+  Dividend Yield:    {f"{div.get('dividend_yield') * 100:.2f}%" if div.get('dividend_yield') else 'N/A'}
+  Payout Ratio:      {f"{div.get('payout_ratio') * 100:.1f}%" if div.get('payout_ratio') else 'N/A'}
 
 {'='*70}
 """)

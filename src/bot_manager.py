@@ -145,11 +145,14 @@ def run_bot(bot_id):
         return {"signals": 0}
 
     market_data = fetch_historical_data(symbols, period="1y", interval="1d")
-    current_prices = {
-        sym: float(df["Close"].dropna().iloc[-1])
-        for sym, df in market_data.items()
-        if df is not None and not df.empty
-    }
+    current_prices = {}
+    for sym, df in market_data.items():
+        if df is None or df.empty:
+            continue
+        closes = df["Close"].dropna()
+        if closes.empty:
+            continue
+        current_prices[sym] = float(closes.iloc[-1])
 
     strategy = get_strategy(bot["strategy"])
     signals = strategy.generate_signals(bot, market_data)

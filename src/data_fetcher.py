@@ -243,6 +243,10 @@ def fetch_current_prices(symbols, allow_stale=False):
     data = fetch_historical_data(symbols, period="5d", interval="1d", allow_stale=allow_stale)
     prices = {}
     for sym, df in data.items():
-        if df is not None and not df.empty:
-            prices[sym] = float(df["Close"].dropna().iloc[-1])
+        if df is None or df.empty:
+            continue
+        closes = df["Close"].dropna()
+        if closes.empty:
+            continue
+        prices[sym] = float(closes.iloc[-1])
     return prices

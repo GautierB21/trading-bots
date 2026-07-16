@@ -187,18 +187,18 @@ PRICE
 
 METRICS
   Market Cap:    {format_large_number(m.get('market_cap'))}
-  P/E Ratio:     {m.get('pe_ratio', 'N/A'):.2f if m.get('pe_ratio') else 'N/A'}
-  Forward P/E:   {m.get('forward_pe', 'N/A'):.2f if m.get('forward_pe') else 'N/A'}
-  EPS:           ${m.get('eps', 0):.2f if m.get('eps') else 'N/A'}
-  Dividend:      {m.get('dividend_yield', 0)*100:.2f}% if m.get('dividend_yield') else 'N/A'
-  Beta:          {m.get('beta', 'N/A'):.2f if m.get('beta') else 'N/A'}
+  P/E Ratio:     {f"{m.get('pe_ratio'):.2f}" if m.get('pe_ratio') else 'N/A'}
+  Forward P/E:   {f"{m.get('forward_pe'):.2f}" if m.get('forward_pe') else 'N/A'}
+  EPS:           {f"${m.get('eps'):.2f}" if m.get('eps') else 'N/A'}
+  Dividend:      {f"{m.get('dividend_yield') * 100:.2f}%" if m.get('dividend_yield') else 'N/A'}
+  Beta:          {f"{m.get('beta'):.2f}" if m.get('beta') else 'N/A'}
 
 PERFORMANCE
-  1 Week:        {perf.get('1_week', 'N/A'):+.2f}% if perf.get('1_week') else 'N/A'
-  1 Month:       {perf.get('1_month', 'N/A'):+.2f}% if perf.get('1_month') else 'N/A'
-  3 Month:       {perf.get('3_month', 'N/A'):+.2f}% if perf.get('3_month') else 'N/A'
-  YTD:           {perf.get('ytd', 'N/A'):+.2f}% if perf.get('ytd') else 'N/A'
-  1 Year:        {perf.get('1_year', 'N/A'):+.2f}% if perf.get('1_year') else 'N/A'
+  1 Week:        {f"{perf.get('1_week'):+.2f}%" if perf.get('1_week') else 'N/A'}
+  1 Month:       {f"{perf.get('1_month'):+.2f}%" if perf.get('1_month') else 'N/A'}
+  3 Month:       {f"{perf.get('3_month'):+.2f}%" if perf.get('3_month') else 'N/A'}
+  YTD:           {f"{perf.get('ytd'):+.2f}%" if perf.get('ytd') else 'N/A'}
+  1 Year:        {f"{perf.get('1_year'):+.2f}%" if perf.get('1_year') else 'N/A'}
 
 INFO
   Sector:        {c.get('sector', 'N/A')}

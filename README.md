@@ -79,7 +79,7 @@ data/
 
 ## Costs & Realism
 
-- **Commission**: 0.1% per trade
+- **Commission**: 0.26% per trade (Kraken taker fee)
 - **Slippage**: 0.05% (buy executes 0.05% above signal price, sell 0.05% below)
 - **Data**: Daily OHLCV from yfinance (free, ~1y history)
 - **Capital**: $10,000 per bot (configurable)
