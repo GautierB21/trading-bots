@@ -1,0 +1,59 @@
+[server] ✅ Intraday scheduler auto-started
+ * Serving Flask app 'server'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://187.124.55.141:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 112-330-174
+127.0.0.1 - - [08/Jul/2026 14:02:31] "GET /api/intraday/status HTTP/1.1" 200 -
+ * Detected change in '/root/trading-bots/intraday/config.py', reloading
+[server] ✅ Intraday scheduler auto-started
+[14:02:08] cycle 1 | kraken=DOWN | crypto_scalper=€152.02 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:03:08] cycle 2 | kraken=UP | crypto_scalper=€150.98 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:04:08] cycle 3 | kraken=UP | crypto_scalper=€151.26 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:05:10] cycle 4 | kraken=UP | crypto_scalper=€151.37 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:06:08] cycle 5 | kraken=UP | crypto_scalper=€151.10 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:07:08] cycle 6 | kraken=UP | crypto_scalper=€150.59 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:08:08] cycle 7 | kraken=UP | crypto_scalper=€150.48 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:09:08] cycle 8 | kraken=UP | crypto_scalper=€150.98 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:10:11] cycle 9 | kraken=UP | crypto_scalper=€151.82 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 112-330-174
+127.0.0.1 - - [08/Jul/2026 14:10:38] "GET /api/intraday/status HTTP/1.1" 200 -
+127.0.0.1 - - [08/Jul/2026 14:10:49] "GET /api/intraday/bots/crypto_scalper HTTP/1.1" 200 -
+ * Detected change in '/root/trading-bots/server.py', reloading
+[server] ✅ Intraday scheduler auto-started
+[14:10:17] cycle 1 | kraken=UP | crypto_scalper=€151.82 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:11:16] cycle 2 | kraken=UP | crypto_scalper=€151.42 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 112-330-174
+ * Detected change in '/root/trading-bots/server.py', reloading
+[server] ✅ Intraday scheduler auto-started
+[14:12:13] cycle 1 | kraken=DOWN | crypto_scalper=€151.67 | crypto_mean_rev=€400.00 | crypto_momentum=€-0.42
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 112-330-174
+ * Detected change in '/root/trading-bots/server.py', reloading
+[server] ✅ Intraday scheduler auto-started
+[14:13:05] cycle 1 | kraken=DOWN | crypto_scalper=€151.69 | crypto_mean_rev=€400.00 | crypto_momentum=€-1.95
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 112-330-174
+[14:02:07] cycle 1 | kraken=DOWN | crypto_scalper=€152.02 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:03:08] cycle 2 | kraken=UP | crypto_scalper=€150.98 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:04:07] cycle 3 | kraken=UP | crypto_scalper=€151.26 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:05:10] cycle 4 | kraken=UP | crypto_scalper=€151.37 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:06:07] cycle 5 | kraken=UP | crypto_scalper=€151.12 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:07:07] cycle 6 | kraken=UP | crypto_scalper=€150.59 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:08:08] cycle 7 | kraken=UP | crypto_scalper=€150.48 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:09:08] cycle 8 | kraken=UP | crypto_scalper=€150.98 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:10:10] cycle 9 | kraken=UP | crypto_scalper=€151.82 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:11:08] cycle 10 | kraken=UP | crypto_scalper=€151.25 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:12:07] cycle 11 | kraken=UP | crypto_scalper=€151.67 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00
+[14:13:08] cycle 12 | kraken=UP | crypto_scalper=€151.89 | crypto_mean_rev=€400.00 | crypto_momentum=€300.00

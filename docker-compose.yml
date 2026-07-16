@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  trading-bots:
+    build: .
+    container_name: trading-bots
+    expose:
+      - "8080"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
+      - "traefik.http.routers.trading-bots.entrypoints=http"
+      - "traefik.http.routers.trading-bots.rule=Host(`trading.bookpass.fr`)"
+      - "traefik.http.services.trading-bots.loadbalancer.server.port=8080"
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true

@@ -1,0 +1,3008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Bots</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#161b22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TradingBots">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="/static/icon.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1f2937;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --green: #3fb950;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --yellow: #d29922;
+    --accent: #238636;
+    --orange: #d97706;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  button { font-family: inherit; cursor: pointer; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ── Nav ─────────────────────────────────────────────────────────────── */
+
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(13, 17, 23, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .navbar-left { display: flex; align-items: center; gap: 28px; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  .nav-links { display: flex; gap: 4px; }
+
+  .nav-link {
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .nav-link:hover { background: var(--surface2); color: var(--text); text-decoration: none; }
+  .nav-link.active { background: var(--surface2); color: var(--text); }
+
+  .navbar-right { display: flex; align-items: center; gap: 10px; }
+
+  /* ── Buttons ─────────────────────────────────────────────────────────── */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: #2a3441; border-color: #444c56; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2ea043; }
+
+  .btn-danger { background: transparent; border-color: var(--red); color: var(--red); }
+  .btn-danger:hover { background: rgba(248, 81, 73, 0.12); }
+
+  .btn-ghost { background: transparent; border-color: var(--border); }
+
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  .spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Layout ──────────────────────────────────────────────────────────── */
+
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+    animation: fadein 0.25s ease;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .page-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  .page-subtitle { color: var(--muted); font-size: 13px; }
+  .hero-value { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+
+  .muted { color: var(--muted); }
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+
+  /* ── Cards / Grid ────────────────────────────────────────────────────── */
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+
+  .card-clickable { cursor: pointer; }
+  .card-clickable:hover {
+    border-color: #444c56;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .card-name { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+
+  .pill {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .badge-active {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--green);
+    border: 1px solid rgba(63, 185, 80, 0.35);
+  }
+  .badge-inactive {
+    background: rgba(139, 148, 158, 0.15);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .card-value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .card-pnl { font-size: 13px; font-weight: 600; }
+  .strategy-desc { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .card-sparkline { margin-top: 12px; width: 100%; height: 44px; display: block; }
+
+  .trade-indicator { font-size: 11.5px; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 5px; }
+  .trade-indicator .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .trade-waiting { color: #e3b341; }
+  .trade-waiting .dot { background: #e3b341; box-shadow: 0 0 6px rgba(227,179,65,0.6); }
+  .trade-recent { color: var(--green); }
+  .trade-recent .dot { background: var(--green); box-shadow: 0 0 6px rgba(63,185,80,0.6); }
+  .trade-stale { color: var(--muted); font-weight: 500; }
+  .trade-stale .dot { background: var(--muted); }
+
+  /* ── Signal analysis ─────────────────────────────────────────────────── */
+
+  .signal-ok { color: var(--green); }
+  .signal-warn { color: var(--yellow); }
+  .indicator-chip {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 7px;
+    margin: 2px 3px 2px 0;
+    font-size: 11px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #c9d1d9;
+    white-space: nowrap;
+  }
+  .reason-cell { white-space: normal; max-width: 320px; color: var(--muted); }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) { .metrics-row { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .metrics-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+
+  .metric-value { font-size: 19px; font-weight: 700; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.donut { height: 300px; }
+
+  /* ── Investment Universe ─────────────────────────────────────────────── */
+
+  .universe-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface2);
+    margin-bottom: 16px;
+  }
+
+  .universe-bar-segment { height: 100%; }
+
+  .universe-rows { display: flex; flex-direction: column; gap: 8px; }
+
+  .universe-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+
+  .universe-row-label { min-width: 150px; flex-shrink: 0; color: var(--text); }
+
+  .universe-row-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    overflow: hidden;
+  }
+
+  .universe-row-fill { height: 100%; border-radius: 3px; }
+
+  .universe-row-count { min-width: 26px; text-align: right; color: var(--muted); }
+
+  .card-universe {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Tables ──────────────────────────────────────────────────────────── */
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td { padding: 11px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+
+  tbody tr { transition: background 0.1s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .table-scroll { overflow-x: auto; }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--surface2);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .rank-1 { background: rgba(210, 153, 34, 0.2); color: var(--yellow); }
+  .rank-2 { background: rgba(139, 148, 158, 0.2); color: #c9d1d9; }
+  .rank-3 { background: rgba(217, 119, 6, 0.2); color: var(--orange); }
+
+  .side-buy { color: var(--green); font-weight: 600; }
+  .side-sell { color: var(--red); font-weight: 600; }
+
+  .status-open { color: var(--blue); font-weight: 600; }
+  .status-closed { color: var(--muted); }
+
+  /* ── Forms ───────────────────────────────────────────────────────────── */
+
+  .form-group { margin-bottom: 18px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 11px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+
+  textarea {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12.5px;
+    resize: vertical;
+    min-height: 140px;
+    line-height: 1.5;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+  }
+
+  .field-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .field-error { font-size: 12px; color: var(--red); margin-top: 6px; }
+
+  .form-card {
+    max-width: 620px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  .strategy-info {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .strategy-info pre {
+    margin: 8px 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #c9d1d9;
+    font-size: 11.5px;
+  }
+
+  /* ── Skeletons ───────────────────────────────────────────────────────── */
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface2) 25%, #2a3340 37%, var(--surface2) 63%);
+    background-size: 400% 100%;
+    animation: pulse 1.4s ease infinite;
+    border-radius: 6px;
+  }
+
+  @keyframes pulse { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+  .skel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+
+  /* ── Empty / Error states ────────────────────────────────────────────── */
+
+  .empty-state, .error-state { text-align: center; padding: 70px 20px; color: var(--muted); }
+  .empty-state-icon { font-size: 40px; margin-bottom: 14px; }
+  .empty-state h3 { color: var(--text); margin: 0 0 8px; font-size: 17px; }
+  .error-state { color: var(--red); }
+
+  /* ── Toasts ──────────────────────────────────────────────────────────── */
+
+  .data-source-footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 16px 8px 24px;
+  }
+
+  .data-source-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    margin-left: 4px;
+    font-weight: 600;
+  }
+
+  .data-source-badge.on {
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .data-source-badge.off {
+    color: var(--muted);
+  }
+
+  .toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    min-width: 260px;
+    max-width: 360px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    animation: toast-in 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .toast.success { border-left-color: var(--green); }
+  .toast.error { border-left-color: var(--red); }
+  .toast.info { border-left-color: var(--blue); }
+
+  @keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+  .toast.fade-out { animation: toast-out 0.2s ease forwards; }
+  @keyframes toast-out { to { opacity: 0; transform: translateX(20px); } }
+
+  /* ── Modal ───────────────────────────────────────────────────────────── */
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(1, 4, 9, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    animation: fadein 0.15s ease;
+    padding: 20px;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 480px;
+    padding: 22px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .modal-title { font-size: 16px; font-weight: 700; margin: 0 0 10px; }
+  .modal-body { color: var(--muted); font-size: 13.5px; margin-bottom: 20px; line-height: 1.5; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-wide { max-width: 620px; }
+
+  /* ── Config box ──────────────────────────────────────────────────────── */
+
+  .config-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12.5px;
+    color: #c9d1d9;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-badges { display: flex; align-items: center; gap: 8px; }
+
+  [title] { position: relative; }
+
+  @media (max-width: 700px) {
+    .navbar { padding: 10px 14px; }
+    .navbar-left { gap: 14px; }
+    .nav-links { gap: 0; }
+    .page { padding: 18px 14px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="#!/" class="brand"><span class="brand-dot"></span>Trading Bots</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#!/" class="nav-link" data-route="/">Dashboard</a>
+      <a href="#!/intraday" class="nav-link" data-route="/intraday">Intraday</a>
+      <a href="#!/backtest" class="nav-link" data-route="/backtest">Backtest</a>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <button class="btn btn-sm" id="installPwaBtn" style="display:none" title="Install Trading Bots as an app">
+      ⬇ Install App
+    </button>
+    <a href="#!/create" class="btn btn-primary" title="Create a new paper trading bot">+ New Bot</a>
+  </div>
+</nav>
+
+<div id="app"></div>
+<footer class="data-source-footer" id="dataSourceFooter"></footer>
+<div class="toast-container" id="toastContainer"></div>
+<div id="modalRoot"></div>
+<p class="ios-hint" style="display:none;text-align:center;color:var(--muted);font-size:12px;padding:8px">
+  💡 iOS: Tap Share → Add to Home Screen to install
+</p>
+
+<script>
+/* ── State ─────────────────────────────────────────────────────────────── */
+
+const state = {
+  route: null,
+  params: {},
+  autoRefreshTimer: null,
+  charts: {},
+};
+
+/* ── API client ────────────────────────────────────────────────────────── */
+
+async function api(path, options = {}) {
+  const opts = Object.assign({ headers: { "Content-Type": "application/json" } }, options);
+  if (opts.body && typeof opts.body !== "string") opts.body = JSON.stringify(opts.body);
+  let res;
+  try {
+    res = await fetch(path, opts);
+  } catch (e) {
+    throw new Error("Network error: could not reach API");
+  }
+  let data = null;
+  const text = await res.text();
+  if (text) {
+    try { data = JSON.parse(text); } catch (e) { data = null; }
+  }
+  if (!res.ok) {
+    const msg = (data && data.error) ? data.error : `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
+/* ── Formatting helpers ────────────────────────────────────────────────── */
+
+function fmtMoney(v) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  const n = Number(v);
+  const sign = n < 0 ? "-" : "";
+  return sign + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtEuro(v) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  const n = Number(v);
+  const sign = n < 0 ? "-" : "";
+  return sign + "€" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtTime(v) {
+  if (!v) return "—";
+  const d = new Date(v.includes("Z") || v.includes("+") ? v : v.replace(" ", "T") + "Z");
+  if (isNaN(d.getTime())) return v;
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  const n = Number(v);
+  const sign = n > 0 ? "+" : "";
+  return sign + n.toFixed(2) + "%";
+}
+
+function fmtNum(v, decimals = 4) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  const n = Number(v);
+  return n % 1 === 0 ? n.toString() : n.toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+const PRODUCT_NAMES = {
+  "AAPL":"Apple","MSFT":"Microsoft","GOOGL":"Alphabet","AMZN":"Amazon","NVDA":"NVIDIA",
+  "META":"Meta","TSLA":"Tesla","JPM":"JPMorgan","BAC":"Bank of America","GS":"Goldman Sachs",
+  "MS":"Morgan Stanley","V":"Visa","MA":"Mastercard","WMT":"Walmart","JNJ":"Johnson & Johnson",
+  "KO":"Coca-Cola","PEP":"PepsiCo","MCD":"McDonald's","DIS":"Disney","BA":"Boeing",
+  "XOM":"Exxon Mobil","CVX":"Chevron","CAT":"Caterpillar","HD":"Home Depot","NKE":"Nike",
+  "COST":"Costco","SBUX":"Starbucks","INTC":"Intel","CSCO":"Cisco","ORCL":"Oracle",
+  "IBM":"IBM","ADBE":"Adobe","CRM":"Salesforce","AMD":"AMD","PG":"Procter & Gamble",
+  "UNH":"UnitedHealth","MRK":"Merck","PFE":"Pfizer","ABBV":"AbbVie","T":"AT&T",
+  "SPY":"SPDR S&P 500 ETF","QQQ":"Invesco QQQ Trust","IWM":"Russell 2000 ETF",
+  "EEM":"MSCI Emerging Markets ETF","VWO":"FTSE Emerging Markets ETF",
+  "VNQ":"Real Estate ETF","GLD":"Gold Trust","TLT":"20+ Year Treasury ETF",
+  "DIA":"Dow Jones ETF","VWCE.DE":"FTSE All-World UCITS","CW8.PA":"MSCI World UCITS",
+  "ESE.PA":"CAC 40 UCITS","MC.PA":"LVMH","TTE.PA":"TotalEnergies","SAN.PA":"Sanofi",
+  "AIR.PA":"Airbus","BNP.PA":"BNP Paribas","OR.PA":"L\'Oréal","CS.PA":"AXA",
+  "DG.PA":"Vinci","BN.PA":"Danone","CAP.PA":"Capgemini","SAF.PA":"Safran",
+  "KER.PA":"Kering","VIE.PA":"Veolia","SU.PA":"Schneider Electric",
+  "SAP.DE":"SAP","SIE.DE":"Siemens","ALV.DE":"Allianz","BMW.DE":"BMW",
+  "SHEL.L":"Shell","HSBA.L":"HSBC","AZN.L":"AstraZeneca","BP.L":"BP",
+  "GSK.L":"GSK","RIO.L":"Rio Tinto","BARC.L":"Barclays",
+  "XBT/USD":"Bitcoin","ETH/USD":"Ethereum","SOL/USD":"Solana","XRP/USD":"Ripple",
+  "ADA/USD":"Cardano","AVAX/USD":"Avalanche","DOT/USD":"Polkadot","LINK/USD":"Chainlink",
+  "MATIC/USD":"Polygon","ATOM/USD":"Cosmos","NEAR/USD":"NEAR Protocol","APT/USD":"Aptos",
+  "SUI/USD":"Sui","AAVE/USD":"Aave","UNI/USD":"Uniswap","DOGE/USD":"Dogecoin",
+  "SHIB/USD":"Shiba Inu","BCH/USD":"Bitcoin Cash","LTC/USD":"Litecoin",
+  "BTC-USD":"Bitcoin","ETH-USD":"Ethereum","SOL-USD":"Solana","XRP-USD":"Ripple",
+  "ADA-USD":"Cardano","AVAX-USD":"Avalanche","DOT-USD":"Polkadot","LINK-USD":"Chainlink",
+  "BNB-USD":"BNB","DOGE-USD":"Dogecoin","SHIB-USD":"Shiba Inu","TRX-USD":"Tron",
+  "ETC-USD":"Ethereum Classic","XLM-USD":"Stellar","BCH-USD":"Bitcoin Cash",
+};
+
+function productName(sym) {
+  if (!sym) return sym;
+  const name = PRODUCT_NAMES[sym];
+  if (name) return name;
+  // Fallback: clean up the symbol for display
+  let cleaned = sym.replace(/\.PA$/, "").replace(/\.DE$/, "").replace(/\.L$/, "").replace(/-USD$/, "").replace(/\/USD$/, "");
+  return cleaned || sym;
+}
+
+function fmtDate(v) {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return v;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function pnlClass(v) {
+  return (Number(v) || 0) >= 0 ? "text-green" : "text-red";
+}
+
+function tradeIndicatorHTML(daysSinceTrade) {
+  if (daysSinceTrade === undefined || daysSinceTrade === null) return "";
+  if (daysSinceTrade === "never") {
+    return `<div class="trade-indicator trade-waiting"><span class="dot"></span>Waiting for signal…</div>`;
+  }
+  const d = Number(daysSinceTrade);
+  if (d < 2) {
+    return `<div class="trade-indicator trade-recent"><span class="dot"></span>Recently traded</div>`;
+  }
+  return `<div class="trade-indicator trade-stale"><span class="dot"></span>${d} days since last trade</div>`;
+}
+
+function esc(str) {
+  const div = document.createElement("div");
+  div.textContent = str === null || str === undefined ? "" : String(str);
+  return div.innerHTML;
+}
+
+const STRATEGY_COLORS = {
+  sma_crossover: "#58a6ff",
+  rsi_mean_reversion: "#d29922",
+  momentum: "#f85149",
+  bollinger_bands: "#a371f7",
+  dca: "#3fb950",
+  pairs_trading: "#d97706",
+  fundamental: "#39c5cf",
+  sentiment: "#db61a2",
+};
+
+function strategyColor(strategy) {
+  return STRATEGY_COLORS[strategy] || "#8b949e";
+}
+
+function strategyLabel(strategy) {
+  if (!strategy) return "—";
+  return strategy.split("_").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+}
+
+function strategyPill(strategy) {
+  const c = strategyColor(strategy);
+  return `<span class="pill" style="background:${c}22;color:${c};border:1px solid ${c}55" title="Strategy: ${esc(strategyLabel(strategy))}">${esc(strategyLabel(strategy))}</span>`;
+}
+
+const UNIVERSE_COLORS = {
+  "🇺🇸 US Stocks": "#58a6ff",
+  "🇫🇷 France": "#3fb950",
+  "🇩🇪 Germany": "#d29922",
+  "🇬🇧 UK": "#f85149",
+  "🇯🇵 Japan": "#a371f7",
+  "🇭🇰 Hong Kong": "#d97706",
+  "🪙 Crypto": "#f0883e",
+  "📊 ETFs": "#8b949e",
+  "🇳🇱 Netherlands": "#39c5cf",
+  "🇨🇭 Switzerland": "#e3b341",
+  "🇮🇹 Italy": "#56d364",
+  "🇪🇺 Other EU": "#79c0ff",
+  "🇨🇦 Canada": "#ff7b72",
+};
+
+function universeColor(marketName) {
+  return UNIVERSE_COLORS[marketName] || "#6e7681";
+}
+
+function renderUniversePanel(universe) {
+  if (!universe || !universe.markets || !universe.markets.length) return "";
+  const total = universe.total;
+  const bar = universe.markets.map(m => {
+    const pct = total > 0 ? (m.count / total * 100) : 0;
+    return `<div class="universe-bar-segment" style="width:${pct.toFixed(2)}%;background:${universeColor(m.name)}" title="${esc(m.name)} — ${m.count} (${pct.toFixed(1)}%)"></div>`;
+  }).join("");
+  const rows = universe.markets.map(m => {
+    const pct = total > 0 ? (m.count / total * 100) : 0;
+    return `
+      <div class="universe-row" title="${esc(m.examples.join(", "))}">
+        <div class="universe-row-label">${esc(m.name)}</div>
+        <div class="universe-row-track"><div class="universe-row-fill" style="width:${pct.toFixed(2)}%;background:${universeColor(m.name)}"></div></div>
+        <div class="universe-row-count">${m.count}</div>
+      </div>`;
+  }).join("");
+  return `
+    <div class="panel">
+      <div class="panel-title">Investment Universe <span class="muted" style="font-weight:400;font-size:12px">${total} total</span></div>
+      <div class="universe-bar">${bar}</div>
+      <div class="universe-rows">${rows}</div>
+    </div>`;
+}
+
+function metricColorClass(kind, v) {
+  const n = Number(v);
+  if (isNaN(n)) return "";
+  if (kind === "sharpe") return n > 1 ? "text-green" : n < 0 ? "text-red" : "";
+  if (kind === "drawdown") return "text-red";
+  if (kind === "winrate") return n >= 50 ? "text-green" : "text-red";
+  if (kind === "var") return "text-red";
+  return "";
+}
+
+function renderRiskMetricsPanel(metrics) {
+  if (!metrics) return "";
+  return `
+    <div class="panel">
+      <div class="panel-title">Risk Metrics</div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Sharpe Ratio</div><div class="metric-value ${metricColorClass("sharpe", metrics.sharpe)}">${fmtNum(metrics.sharpe, 2)}</div></div>
+        <div class="metric-card"><div class="metric-label">Max Drawdown</div><div class="metric-value ${metricColorClass("drawdown", metrics.max_drawdown)}">${fmtPct(metrics.max_drawdown)}</div></div>
+        <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value ${metricColorClass("winrate", metrics.win_rate)}">${fmtNum(metrics.win_rate, 2)}%</div></div>
+        <div class="metric-card"><div class="metric-label">Volatility</div><div class="metric-value">${fmtNum(metrics.volatility, 2)}%</div></div>
+        <div class="metric-card"><div class="metric-label">VaR 95%</div><div class="metric-value ${metricColorClass("var", metrics.var_95)}">${fmtNum(metrics.var_95, 2)}%</div></div>
+        <div class="metric-card"><div class="metric-label">Total Trades</div><div class="metric-value">${metrics.total_trades}</div></div>
+      </div>
+    </div>`;
+}
+
+function renderIntradayRiskMetricsPanel(trades) {
+  const closed = (trades || []).filter(t => t.status === "closed" && t.pnl != null);
+  if (!closed.length) return "";
+  const pnls = closed.map(t => Number(t.pnl));
+  const totalTrades = closed.length;
+  const winRate = (closed.filter(t => Number(t.pnl) > 0).length / totalTrades) * 100;
+  const best = Math.max(...pnls);
+  const worst = Math.min(...pnls);
+  const avg = pnls.reduce((a, b) => a + b, 0) / totalTrades;
+
+  return `
+    <div class="panel">
+      <div class="panel-title">Risk Metrics</div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Total Trades</div><div class="metric-value">${totalTrades}</div></div>
+        <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value ${metricColorClass("winrate", winRate)}">${fmtNum(winRate, 2)}%</div></div>
+        <div class="metric-card"><div class="metric-label">Best Trade P&amp;L</div><div class="metric-value text-green">${fmtEuro(best)}</div></div>
+        <div class="metric-card"><div class="metric-label">Worst Trade P&amp;L</div><div class="metric-value text-red">${fmtEuro(worst)}</div></div>
+        <div class="metric-card"><div class="metric-label">Avg P&amp;L / Trade</div><div class="metric-value ${pnlClass(avg)}">${fmtEuro(avg)}</div></div>
+      </div>
+    </div>`;
+}
+
+function renderUniverseMiniLine(universe) {
+  if (!universe || !universe.markets || !universe.markets.length) return "";
+  const parts = universe.markets
+    .filter(m => m.count > 0)
+    .map(m => `${m.name.split(" ")[0]} ${m.count}`)
+    .join(" ");
+  return `<div class="card-universe">${parts} <span class="muted">| ${universe.total} total</span></div>`;
+}
+
+/* field-name compatibility helper — a couple of API rows use slightly different keys */
+function pick(obj, ...keys) {
+  for (const k of keys) {
+    if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+  }
+  return undefined;
+}
+
+/* ── Toasts ────────────────────────────────────────────────────────────── */
+
+function toast(message, type = "info") {
+  const container = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  const icon = type === "success" ? "✓" : type === "error" ? "✕" : "ℹ";
+  el.innerHTML = `<span>${icon}</span><span>${esc(message)}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add("fade-out");
+    setTimeout(() => el.remove(), 220);
+  }, 3600);
+}
+
+/* ── Modals ────────────────────────────────────────────────────────────── */
+
+function closeModal() {
+  document.getElementById("modalRoot").innerHTML = "";
+}
+
+function confirmDialog({ title, body, confirmText = "Confirm", danger = false, onConfirm }) {
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `
+    <div class="modal-overlay" id="confirmOverlay">
+      <div class="modal">
+        <div class="modal-title">${esc(title)}</div>
+        <div class="modal-body">${esc(body)}</div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="confirmCancelBtn">Cancel</button>
+          <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="confirmOkBtn">${esc(confirmText)}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("confirmCancelBtn").onclick = closeModal;
+  document.getElementById("confirmOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "confirmOverlay") closeModal();
+  });
+  document.getElementById("confirmOkBtn").onclick = async () => {
+    const btn = document.getElementById("confirmOkBtn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>`;
+    try {
+      await onConfirm();
+      closeModal();
+    } catch (e) {
+      toast(e.message, "error");
+      btn.disabled = false;
+      btn.textContent = confirmText;
+    }
+  };
+}
+
+function jsonEditorModal({ title, initialValue, onSave }) {
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `
+    <div class="modal-overlay" id="jsonOverlay">
+      <div class="modal modal-wide">
+        <div class="modal-title">${esc(title)}</div>
+        <div class="form-group" style="margin-bottom:8px">
+          <textarea id="jsonEditorArea" style="min-height:280px">${esc(JSON.stringify(initialValue, null, 2))}</textarea>
+          <div class="field-error" id="jsonEditorError" style="display:none"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="jsonCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="jsonSaveBtn">Save Config</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("jsonCancelBtn").onclick = closeModal;
+  document.getElementById("jsonOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "jsonOverlay") closeModal();
+  });
+  document.getElementById("jsonSaveBtn").onclick = async () => {
+    const area = document.getElementById("jsonEditorArea");
+    const errEl = document.getElementById("jsonEditorError");
+    let parsed;
+    try {
+      parsed = JSON.parse(area.value);
+    } catch (e) {
+      errEl.textContent = "Invalid JSON: " + e.message;
+      errEl.style.display = "block";
+      return;
+    }
+    errEl.style.display = "none";
+    const btn = document.getElementById("jsonSaveBtn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>`;
+    try {
+      await onSave(parsed);
+      closeModal();
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Save Config";
+    }
+  };
+}
+
+function backtestResultModal(bot, result) {
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `
+    <div class="modal-overlay" id="backtestOverlay">
+      <div class="modal modal-wide">
+        <div class="modal-title">Backtest — ${esc(bot.name)} <span class="muted" style="font-size:12px;font-weight:400">${esc(result.start_date)} → ${esc(result.end_date)}</span></div>
+        <div class="metrics-row" style="margin-bottom:16px">
+          <div class="metric-card"><div class="metric-label">Return</div><div class="metric-value ${pnlClass(result.total_return_pct)}">${fmtPct(result.total_return_pct)}</div></div>
+          <div class="metric-card"><div class="metric-label">Sharpe</div><div class="metric-value ${metricColorClass("sharpe", result.sharpe_ratio)}">${fmtNum(result.sharpe_ratio, 2)}</div></div>
+          <div class="metric-card"><div class="metric-label">Max Drawdown</div><div class="metric-value text-red">${fmtPct(result.max_drawdown_pct)}</div></div>
+          <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value ${metricColorClass("winrate", result.win_rate)}">${fmtNum(result.win_rate, 2)}%</div></div>
+        </div>
+        <div class="chart-wrap" style="height:220px"><canvas id="backtestChart"></canvas></div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="backtestCloseBtn">Close</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("backtestCloseBtn").onclick = closeModal;
+  document.getElementById("backtestOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "backtestOverlay") closeModal();
+  });
+
+  const ctx = document.getElementById("backtestChart");
+  const history = result.pnl_history || [];
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: history.map(p => fmtDate(p.date)),
+      datasets: [{
+        label: "Portfolio Value ($)",
+        data: history.map(p => Number(p.value)),
+        borderColor: "#58a6ff",
+        backgroundColor: "rgba(88,166,255,0.12)",
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1f2937",
+          borderColor: "#30363d",
+          borderWidth: 1,
+          callbacks: { label: (c) => `Value: ${fmtMoney(c.raw)}` },
+        },
+      },
+      scales: {
+        x: { ticks: { color: "#8b949e", maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
+        y: { ticks: { color: "#8b949e", callback: (v) => fmtMoney(v) }, grid: { color: "#21262d" } },
+      },
+    },
+  });
+}
+
+function intradayBacktestPeriodModal(bot) {
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `
+    <div class="modal-overlay" id="intradayBacktestOverlay">
+      <div class="modal">
+        <div class="modal-title">Backtest — ${esc(bot.display_name || bot.name)}</div>
+        <div class="modal-body">
+          <label class="muted" style="font-size:12px" for="intradayBacktestPeriod">Period</label>
+          <select id="intradayBacktestPeriod" style="width:100%;padding:6px 10px;font-size:14px;border-radius:6px;margin-top:6px">
+            <option value="24">24h</option>
+            <option value="168">7d</option>
+            <option value="720" selected>30d</option>
+            <option value="2160">90d</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="intradayBacktestCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="intradayBacktestRunBtn">Run</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("intradayBacktestCancelBtn").onclick = closeModal;
+  document.getElementById("intradayBacktestOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "intradayBacktestOverlay") closeModal();
+  });
+  document.getElementById("intradayBacktestRunBtn").onclick = async () => {
+    const btn = document.getElementById("intradayBacktestRunBtn");
+    const periodHours = Number(document.getElementById("intradayBacktestPeriod").value);
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Running…`;
+    try {
+      const payload = {
+        strategy: bot.name,
+        symbols: bot.symbols,
+        timeframe_minutes: bot.timeframe,
+        period_hours: periodHours,
+        capital: bot.budget,
+      };
+      const result = await api(`/api/intraday/backtest`, { method: "POST", body: JSON.stringify(payload) });
+      if (!result || result.error) throw new Error((result && result.error) || "Empty response from server");
+      intradayBacktestResultModal(bot, result);
+    } catch (e) {
+      toast("Backtest failed: " + (e.message || "Unknown error"), "error");
+      btn.disabled = false;
+      btn.textContent = "Run";
+    }
+  };
+}
+
+function intradayBacktestResultModal(bot, result) {
+  const root = document.getElementById("modalRoot");
+  const finalValue = result.final_value ?? result.total_value;
+  const numTrades = result.num_trades ?? result.trade_count ?? (result.trades ? result.trades.length : undefined);
+  root.innerHTML = `
+    <div class="modal-overlay" id="intradayBacktestResultOverlay">
+      <div class="modal modal-wide">
+        <div class="modal-title">Backtest — ${esc(bot.display_name || bot.name)}</div>
+        <div class="metrics-row" style="margin-bottom:16px">
+          <div class="metric-card"><div class="metric-label">Return</div><div class="metric-value ${pnlClass(result.total_return_pct)}">${fmtPct(result.total_return_pct)}</div></div>
+          <div class="metric-card"><div class="metric-label">Sharpe</div><div class="metric-value ${metricColorClass("sharpe", result.sharpe_ratio)}">${fmtNum(result.sharpe_ratio, 2)}</div></div>
+          <div class="metric-card"><div class="metric-label">Max Drawdown</div><div class="metric-value text-red">${fmtPct(result.max_drawdown_pct)}</div></div>
+          <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value ${metricColorClass("winrate", result.win_rate)}">${fmtNum(result.win_rate, 2)}%</div></div>
+          <div class="metric-card"><div class="metric-label">Trades</div><div class="metric-value">${fmtNum(numTrades, 0)}</div></div>
+          <div class="metric-card"><div class="metric-label">Final Value</div><div class="metric-value">${fmtEuro(finalValue)}</div></div>
+        </div>
+        <div class="chart-wrap" style="height:220px"><canvas id="intradayBacktestChart"></canvas></div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="intradayBacktestResultCloseBtn">Close</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("intradayBacktestResultCloseBtn").onclick = closeModal;
+  document.getElementById("intradayBacktestResultOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "intradayBacktestResultOverlay") closeModal();
+  });
+
+  const ctx = document.getElementById("intradayBacktestChart");
+  const history = result.pnl_history || result.equity_curve || [];
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: history.map(p => fmtDate(p.date || p.timestamp)),
+      datasets: [{
+        label: "Portfolio Value (€)",
+        data: history.map(p => Number(p.value)),
+        borderColor: "#58a6ff",
+        backgroundColor: "rgba(88,166,255,0.12)",
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1f2937",
+          borderColor: "#30363d",
+          borderWidth: 1,
+          callbacks: { label: (c) => `Value: ${fmtEuro(c.raw)}` },
+        },
+      },
+      scales: {
+        x: { ticks: { color: "#8b949e", maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
+        y: { ticks: { color: "#8b949e", callback: (v) => fmtEuro(v) }, grid: { color: "#21262d" } },
+      },
+    },
+  });
+}
+
+/* ── Sparkline ─────────────────────────────────────────────────────────── */
+
+function drawSparkline(canvas, values) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 260;
+  const h = canvas.clientHeight || 44;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  if (!values || values.length < 2) {
+    ctx.strokeStyle = "#30363d";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+    return;
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const rising = values[values.length - 1] >= values[0];
+  const color = rising ? "#3fb950" : "#f85149";
+  const pad = 3;
+
+  const pts = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * w;
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return [x, y];
+  });
+
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, color + "33");
+  grad.addColorStop(1, color + "00");
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], h);
+  pts.forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.lineTo(pts[pts.length - 1][0], h);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  pts.forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.75;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+}
+
+/* ── Router ────────────────────────────────────────────────────────────── */
+
+const routes = [
+  { pattern: /^\/$/, page: renderDashboard },
+  { pattern: /^\/leaderboard$/, page: renderDashboard },
+  { pattern: /^\/portfolio$/, page: renderDashboard },
+  { pattern: /^\/create$/, page: renderCreateBot },
+  { pattern: /^\/bot\/(\d+)$/, page: renderBotDetail, param: "id" },
+  { pattern: /^\/intraday$/, page: renderIntraday },
+  { pattern: /^\/intraday\/bot\/([^/]+)$/, page: renderIntradayBotDetail, param: "name" },
+  { pattern: /^\/backtest$/, page: renderBacktestPage },
+];
+
+function currentHashPath() {
+  const h = window.location.hash || "#!/";
+  const withoutBang = h.replace(/^#!/, "");
+  return withoutBang || "/";
+}
+
+function renderRoute() {
+  clearInterval(state.autoRefreshTimer);
+  destroyCharts();
+
+  const path = currentHashPath();
+  let matched = null;
+  let params = {};
+
+  for (const r of routes) {
+    const m = path.match(r.pattern);
+    if (m) {
+      matched = r;
+      if (r.param) params[r.param] = m[1];
+      break;
+    }
+  }
+
+  updateNavActive(path);
+
+  if (!matched) {
+    document.getElementById("app").innerHTML = notFoundHTML();
+    return;
+  }
+
+  state.route = path;
+  state.params = params;
+  matched.page(params);
+}
+
+function updateNavActive(path) {
+  const base = path === "/" ? "/" : path.startsWith("/bot/") ? "" : path.startsWith("/intraday/") ? "/intraday" : path;
+  document.querySelectorAll(".nav-link").forEach(a => {
+    a.classList.toggle("active", a.dataset.route === base);
+  });
+}
+
+function notFoundHTML() {
+  return `<div class="page"><div class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <h3>Page not found</h3>
+    <p><a href="#!/">Return to dashboard</a></p>
+  </div></div>`;
+}
+
+function destroyCharts() {
+  Object.values(state.charts).forEach(c => { try { c.destroy(); } catch (e) {} });
+  state.charts = {};
+}
+
+window.addEventListener("hashchange", renderRoute);
+window.addEventListener("DOMContentLoaded", renderRoute);
+
+/* ── Data source footer ────────────────────────────────────────────────── */
+
+async function loadDataSourceFooter() {
+  const el = document.getElementById("dataSourceFooter");
+  if (!el) return;
+  try {
+    const s = await api("/api/status");
+    const avBadge = s.alpha_vantage_configured
+      ? `<span class="data-source-badge on">Alpha Vantage</span>`
+      : `<span class="data-source-badge off">Alpha Vantage (not configured)</span>`;
+    el.innerHTML = `Data source: <span class="data-source-badge on">yfinance</span> + ${avBadge}`;
+  } catch (e) {
+    el.innerHTML = `Data source: <span class="data-source-badge on">yfinance</span>`;
+  }
+}
+
+window.addEventListener("DOMContentLoaded", loadDataSourceFooter);
+
+/* ── Skeletons / states ────────────────────────────────────────────────── */
+
+function skeletonCards(n = 6) {
+  let html = '<div class="grid">';
+  for (let i = 0; i < n; i++) {
+    html += `<div class="skel-card">
+      <div class="skeleton" style="height:14px;width:60%;margin-bottom:10px"></div>
+      <div class="skeleton" style="height:20px;width:40%;margin-bottom:14px"></div>
+      <div class="skeleton" style="height:26px;width:70%;margin-bottom:10px"></div>
+      <div class="skeleton" style="height:44px;width:100%"></div>
+    </div>`;
+  }
+  html += "</div>";
+  return html;
+}
+
+function skeletonTable(rows = 6) {
+  let html = '<div class="panel"><div class="skeleton" style="height:16px;width:180px;margin-bottom:16px"></div>';
+  for (let i = 0; i < rows; i++) {
+    html += `<div class="skeleton" style="height:14px;width:100%;margin-bottom:10px"></div>`;
+  }
+  html += "</div>";
+  return html;
+}
+
+function errorState(message, retryFn) {
+  return `<div class="error-state">
+    <div class="empty-state-icon">⚠</div>
+    <h3 style="color:var(--red)">Something went wrong</h3>
+    <p>${esc(message)}</p>
+    <button class="btn" onclick="(${retryFn})()">Retry</button>
+  </div>`;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   DASHBOARD PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderDashboard() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Trading Bots</h1>
+          <div class="page-subtitle" id="lastUpdated">Loading…</div>
+        </div>
+        <div>
+          <div class="hero-value" id="totalPortfolioValue">—</div>
+          <div class="muted" style="text-align:right;font-size:12px">Total Portfolio Value</div>
+        </div>
+      </div>
+      <div class="metrics-row" id="aggregateKpiRow" style="margin-bottom:18px"></div>
+      <div class="flex-between" style="margin-bottom:18px">
+        <div></div>
+        <div class="action-row">
+          <button class="btn btn-primary" id="runAllBtn" title="Trigger a run for every active bot">▶ Run All</button>
+        </div>
+      </div>
+      <div id="dashboardBody">${skeletonCards()}</div>
+    </div>`;
+
+  document.getElementById("runAllBtn").onclick = async () => {
+    const btn = document.getElementById("runAllBtn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Running…`;
+    try {
+      await api("/api/run", { method: "POST" });
+      toast("All bots ran successfully", "success");
+      loadDashboardData();
+    } catch (e) {
+      toast(e.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "▶ Run All";
+    }
+  };
+
+  await loadDashboardData();
+
+  state.autoRefreshTimer = setInterval(() => {
+    if (currentHashPath() === "/") loadDashboardData(true);
+  }, 60000);
+}
+
+async function loadDashboardData(silent = false) {
+  const body = document.getElementById("dashboardBody");
+  if (!body) return;
+  try {
+    const [bots, portfolio, leaderboard, intradayBots] = await Promise.all([
+      api("/api/bots"),
+      api("/api/portfolio"),
+      api("/api/leaderboard").catch(() => []),
+      api("/api/intraday/bots").catch(() => []),
+    ]);
+
+    const totalEl = document.getElementById("totalPortfolioValue");
+    if (totalEl) totalEl.textContent = fmtMoney(portfolio.total_value);
+
+    const updatedEl = document.getElementById("lastUpdated");
+    if (updatedEl) updatedEl.textContent = `Last updated ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
+
+    if ((!bots || bots.length === 0) && (!intradayBots || intradayBots.length === 0)) {
+      body.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">🤖</div>
+        <h3>No bots yet</h3>
+        <p>Create your first bot to start paper trading.</p>
+        <a href="#!/create" class="btn btn-primary">+ Create Your First Bot</a>
+      </div>`;
+      return;
+    }
+
+    const daysSinceById = {};
+    (leaderboard || []).forEach(r => { daysSinceById[r.id] = r.days_since_trade; });
+
+    body.innerHTML = `<div class="grid" id="botsGrid"></div>`
+      + ((intradayBots || []).length
+        ? `<h2 class="panel-title" style="margin-top:28px">Intraday Strategies</h2><div class="grid" id="intradayDashGrid"></div>`
+        : "");
+    const grid = document.getElementById("botsGrid");
+
+    const histories = await Promise.all(bots.map(bot =>
+      api(`/api/bots/${bot.id}/history?days=30`).catch(() => [])
+    ));
+
+    grid.innerHTML = bots.map((bot, i) => renderBotCard(bot, histories[i], daysSinceById[bot.id])).join("");
+
+    const intradayGrid = document.getElementById("intradayDashGrid");
+    if (intradayGrid) intradayGrid.innerHTML = (intradayBots || []).map(renderIntradayDashboardCard).join("");
+
+    bots.forEach((bot) => {
+      const cardEl = document.getElementById(`botcard-${bot.id}`);
+      if (cardEl) cardEl.addEventListener("click", () => { window.location.hash = `#!/bot/${bot.id}`; });
+    });
+
+    bots.forEach((bot, i) => {
+      const canvas = document.getElementById(`spark-${bot.id}`);
+      if (!canvas) return;
+      const values = histories[i].map(h => Number(h.total_value));
+      drawSparkline(canvas, values);
+    });
+
+    (intradayBots || []).forEach((bot) => {
+      const cardEl = document.getElementById(`botcard-intraday-${bot.name}`);
+      if (cardEl) cardEl.addEventListener("click", () => { window.location.hash = `#!/intraday/bot/${bot.name}`; });
+    });
+
+    renderAggregateKpis(bots, histories, intradayBots || []);
+  } catch (e) {
+    if (!silent) body.innerHTML = errorState(e.message, "loadDashboardData");
+    else toast("Auto-refresh failed: " + e.message, "error");
+  }
+}
+
+function renderBotCard(bot, history, daysSinceTrade) {
+  const lastSnap = history && history.length ? history[history.length - 1] : null;
+  const totalValue = lastSnap ? Number(lastSnap.total_value) : Number(bot.total_value || bot.capital || bot.cash);
+  const pnl = lastSnap ? Number(lastSnap.pnl_total) : 0;
+  const pnlPct = lastSnap ? Number(lastSnap.pnl_percent) : 0;
+  const statusBadge = bot.active ? `<span class="pill badge-active">Active</span>` : `<span class="pill badge-inactive">Inactive</span>`;
+
+  return `
+    <div class="card card-clickable" id="botcard-${bot.id}" title="View ${esc(bot.name)} detail">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${esc(bot.name)}</div>
+          <div class="header-badges">${strategyPill(bot.strategy)}${statusBadge}</div>
+          ${bot.strategy_description ? `<div class="strategy-desc">${esc(bot.strategy_description)}</div>` : ""}
+        </div>
+      </div>
+      <div class="card-value">${fmtMoney(totalValue)}</div>
+      <div class="card-pnl ${pnlClass(pnl)}">${fmtMoney(pnl)} (${fmtPct(pnlPct)})</div>
+      ${tradeIndicatorHTML(daysSinceTrade)}
+      ${renderUniverseMiniLine(bot.universe)}
+      <canvas class="card-sparkline" id="spark-${bot.id}"></canvas>
+    </div>`;
+}
+
+function renderIntradayDashboardCard(bot) {
+  const statusBadge = bot.status === "running" ? `<span class="pill badge-active">Active</span>` : `<span class="pill badge-inactive">Inactive</span>`;
+  return `
+    <div class="card card-clickable" id="botcard-intraday-${bot.name}" title="View ${esc(bot.display_name || bot.name)} detail">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${esc(bot.display_name || bot.name)}</div>
+          <div class="header-badges"><span class="pill">Intraday</span>${statusBadge}</div>
+          ${bot.description ? `<div class="strategy-desc">${esc(bot.description)}</div>` : ""}
+          <div class="muted" style="font-size:11px">Budget ${fmtEuro(bot.budget)}</div>
+        </div>
+      </div>
+      <div class="card-value">${fmtEuro(bot.total_value)}</div>
+      <div class="card-pnl ${pnlClass(bot.pnl)}">${fmtEuro(bot.pnl)} (${fmtPct(bot.pnl_pct)})</div>
+    </div>`;
+}
+
+function renderAggregateKpis(bots, histories, intradayBots) {
+  const row = document.getElementById("aggregateKpiRow");
+  if (!row) return;
+
+  let totalCapital = 0;
+  let totalValue = 0;
+  bots.forEach((bot, i) => {
+    const lastSnap = histories[i] && histories[i].length ? histories[i][histories[i].length - 1] : null;
+    totalCapital += Number(bot.capital || 0);
+    totalValue += lastSnap ? Number(lastSnap.total_value) : Number(bot.total_value || bot.capital || bot.cash || 0);
+  });
+  intradayBots.forEach((bot) => {
+    totalCapital += Number(bot.budget || 0);
+    totalValue += Number(bot.total_value || 0);
+  });
+
+  const totalPnl = totalValue - totalCapital;
+  const totalPnlPct = totalCapital > 0 ? (totalPnl / totalCapital) * 100 : 0;
+
+  row.innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total Capital</div><div class="metric-value">${fmtMoney(totalCapital)}</div></div>
+    <div class="metric-card"><div class="metric-label">Total P&amp;L</div><div class="metric-value ${pnlClass(totalPnl)}">${fmtMoney(totalPnl)}</div></div>
+    <div class="metric-card"><div class="metric-label">Total P&amp;L %</div><div class="metric-value ${pnlClass(totalPnlPct)}">${fmtPct(totalPnlPct)}</div></div>`;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   LEADERBOARD PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderLeaderboard() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Leaderboard</h1>
+          <div class="page-subtitle">Bots ranked by P&amp;L%</div>
+        </div>
+      </div>
+      <div id="leaderboardBody">${skeletonTable()}</div>
+    </div>`;
+
+  try {
+    const rows = await api("/api/leaderboard");
+    const body = document.getElementById("leaderboardBody");
+
+    if (!rows || rows.length === 0) {
+      body.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">🏆</div>
+        <h3>No bots to rank yet</h3>
+        <p><a href="#!/create">Create your first bot</a></p>
+      </div>`;
+      return;
+    }
+
+    const sorted = [...rows].sort((a, b) => (Number(pick(b, "pnl_percent")) || 0) - (Number(pick(a, "pnl_percent")) || 0));
+
+    body.innerHTML = `
+      <div class="panel">
+        <div class="panel-title">P&amp;L % Comparison</div>
+        <div class="chart-wrap"><canvas id="leaderboardChart"></canvas></div>
+      </div>
+      <div class="panel table-scroll">
+        <div class="panel-title">Rankings</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th><th>Bot Name</th><th>Strategy</th><th>Capital</th>
+              <th>Value</th><th>P&amp;L ($)</th><th>P&amp;L (%)</th><th>Last Active</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sorted.map((r, i) => {
+              const pnl = pick(r, "pnl_total", "pnl");
+              const pnlPct = pick(r, "pnl_percent");
+              const lastActive = pick(r, "snapshot_date", "last_snapshot");
+              const rankClass = i === 0 ? "rank-1" : i === 1 ? "rank-2" : i === 2 ? "rank-3" : "";
+              return `<tr>
+                <td><span class="rank-badge ${rankClass}">${i + 1}</span></td>
+                <td><a href="#!/bot/${r.id}" title="View ${esc(r.name)} detail">${esc(r.name)}</a></td>
+                <td title="${esc(r.strategy_description || "")}">${strategyPill(r.strategy)}</td>
+                <td>${fmtMoney(r.capital)}</td>
+                <td>${fmtMoney(pick(r, "total_value"))}</td>
+                <td class="${pnlClass(pnl)}">${fmtMoney(pnl)}</td>
+                <td class="${pnlClass(pnlPct)}">${fmtPct(pnlPct)}</td>
+                <td class="muted">${lastActive ? fmtDate(lastActive) : "Never"}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>`;
+
+    const ctx = document.getElementById("leaderboardChart");
+    state.charts.leaderboard = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: sorted.map(r => r.name),
+        datasets: [{
+          label: "P&L %",
+          data: sorted.map(r => Number(pick(r, "pnl_percent")) || 0),
+          backgroundColor: sorted.map(r => (Number(pick(r, "pnl_percent")) || 0) >= 0 ? "#3fb950" : "#f85149"),
+          borderRadius: 4,
+          maxBarThickness: 42,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#1f2937",
+            borderColor: "#30363d",
+            borderWidth: 1,
+            callbacks: { label: (c) => `P&L: ${fmtPct(c.raw)}` },
+          },
+        },
+        scales: {
+          x: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } },
+          y: { ticks: { color: "#8b949e", callback: (v) => v + "%" }, grid: { color: "#21262d" } },
+        },
+      },
+    });
+  } catch (e) {
+    document.getElementById("leaderboardBody").innerHTML = errorState(e.message, "renderLeaderboard");
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   BOT DETAIL PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderBotDetail(params) {
+  const botId = params.id;
+  const app = document.getElementById("app");
+  app.innerHTML = `<div class="page">
+    <div class="skeleton" style="height:28px;width:280px;margin-bottom:8px"></div>
+    <div class="skeleton" style="height:14px;width:180px;margin-bottom:24px"></div>
+    ${skeletonTable(4)}
+  </div>`;
+
+  try {
+    const [bot, history, trades, portfolio, universe, metrics] = await Promise.all([
+      api(`/api/bots/${botId}`),
+      api(`/api/bots/${botId}/history?days=30`).catch(() => []),
+      api(`/api/bots/${botId}/trades?limit=50`).catch(() => []),
+      api(`/api/bots/${botId}/portfolio`).catch(() => null),
+      api(`/api/bots/${botId}/universe`).catch(() => null),
+      api(`/api/bots/${botId}/metrics`).catch(() => null),
+    ]);
+
+    if (!bot || bot.error) {
+      app.innerHTML = `<div class="page">${errorState("Bot not found", "renderRoute")}</div>`;
+      return;
+    }
+
+    const lastSnap = history && history.length ? history[history.length - 1] : null;
+    const totalValue = portfolio ? Number(portfolio.total_value) : (lastSnap ? Number(lastSnap.total_value) : Number(bot.total_value || bot.capital || bot.cash));
+    const pnl = portfolio ? Number(portfolio.total_pnl) : (lastSnap ? Number(lastSnap.pnl_total) : 0);
+    const holdingsValue = totalValue - Number(bot.cash);
+    const pnlPct = bot.capital > 0 ? (pnl / Number(bot.capital)) * 100 : 0;
+    const statusBadge = bot.active ? `<span class="pill badge-active">Active</span>` : `<span class="pill badge-inactive">Inactive</span>`;
+
+    app.innerHTML = `
+      <div class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">${esc(bot.name)}</h1>
+            <div class="header-badges" style="margin-top:6px">${strategyPill(bot.strategy)}${statusBadge}<span class="muted" style="font-size:12px">Created ${fmtDate(bot.created_at)}</span></div>
+            ${bot.strategy_description ? `<div style="color:var(--muted);font-size:12.5px;margin-top:4px">${esc(bot.strategy_description)}</div>` : ""}
+          </div>
+          <div class="action-row">
+            <button class="btn btn-ghost" id="backtestBtn" title="Run a 2-year historical backtest of this bot's strategy">📊 Backtest</button>
+            <button class="btn btn-ghost" id="resetBtn" title="Reset this bot to its initial capital and clear holdings">↺ Reset</button>
+            <button class="btn btn-danger" id="deleteBtn" title="Permanently delete this bot">🗑 Delete</button>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-card"><div class="metric-label">Capital</div><div class="metric-value">${fmtMoney(bot.capital)}</div></div>
+          <div class="metric-card"><div class="metric-label">Cash</div><div class="metric-value">${fmtMoney(bot.cash)}</div></div>
+          <div class="metric-card"><div class="metric-label">Holdings Value</div><div class="metric-value">${fmtMoney(holdingsValue)}</div></div>
+          <div class="metric-card"><div class="metric-label">Total Value</div><div class="metric-value">${fmtMoney(totalValue)}</div></div>
+          <div class="metric-card"><div class="metric-label">P&amp;L</div><div class="metric-value ${pnlClass(pnl)}">${fmtMoney(pnl)}</div></div>
+          <div class="metric-card"><div class="metric-label">P&amp;L %</div><div class="metric-value ${pnlClass(pnlPct)}">${fmtPct(pnlPct)}</div></div>
+        </div>
+
+        ${renderRiskMetricsPanel(metrics)}
+
+        ${renderUniversePanel(universe)}
+
+        <div class="panel">
+          <div class="panel-title">P&amp;L History (30 Days)</div>
+          <div class="chart-wrap"><canvas id="pnlHistoryChart"></canvas></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="panel-title">Holdings</div>
+          <div id="holdingsTableWrap"></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="flex-between">
+            <div class="panel-title" style="margin-bottom:0">Trades</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="date" id="tradeDateFrom" style="width:140px;padding:4px 8px;font-size:12px" title="From date">
+              <input type="date" id="tradeDateTo" style="width:140px;padding:4px 8px;font-size:12px" title="To date">
+              <button class="btn btn-sm" id="filterTradesBtn" title="Filter trades by date">Filter</button>
+              <button class="btn btn-sm btn-ghost" id="resetTradesFilter" title="Clear date filter">Clear</button>
+              <a href="/api/bots/${bot.id}/export/csv" class="btn btn-sm" download title="Download trades as CSV">⬇ CSV</a>
+            </div>
+          </div>
+          <div id="tradesTableWrap"></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="flex-between">
+            <div class="panel-title" style="margin-bottom:0">🏆 Top P&amp;L Trades</div>
+            <span class="muted" style="font-size:12px">Closed trades sorted by profit</span>
+          </div>
+          <div id="topPnlTableWrap"></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="flex-between">
+            <div class="panel-title" style="margin-bottom:0">Signal Analysis</div>
+            <button class="btn btn-sm" id="checkSignalsBtn" title="Analyze why this bot's strategy did or didn't trade">Check for signals</button>
+          </div>
+          <div id="signalAnalysisWrap" style="margin-top:14px"></div>
+        </div>
+
+        <div class="panel">
+          <div class="flex-between">
+            <div class="panel-title" style="margin-bottom:0">Configuration</div>
+            <button class="btn btn-sm" id="editConfigBtn" title="Edit this bot's strategy configuration">Edit Config</button>
+          </div>
+          <div class="config-box" style="margin-top:14px">${esc(JSON.stringify(bot.config || {}, null, 2))}</div>
+        </div>
+      </div>`;
+
+    renderHoldingsTable(portfolio);
+    renderTradesTable(trades, bot.id, false);
+    renderTopPnlTrades(trades);
+
+    // Wire up trade date filter
+    const filterBtn = document.getElementById("filterTradesBtn");
+    const resetBtn = document.getElementById("resetTradesFilter");
+    const fromInput = document.getElementById("tradeDateFrom");
+    const toInput = document.getElementById("tradeDateTo");
+
+    filterBtn.onclick = async () => {
+      filterBtn.disabled = true;
+      filterBtn.innerHTML = '<span class="spinner"></span>';
+      try {
+        let url = `/api/bots/${bot.id}/trades?limit=500`;
+        if (fromInput.value) url += `&start_date=${fromInput.value}`;
+        if (toInput.value) url += `&end_date=${toInput.value}`;
+        const filtered = await api(url);
+        renderTradesTable(filtered, bot.id, true);
+      } catch (e) {
+        toast(e.message, "error");
+      }
+      filterBtn.disabled = false;
+      filterBtn.textContent = "Filter";
+    };
+
+    resetBtn.onclick = async () => {
+      fromInput.value = "";
+      toInput.value = "";
+      const allTrades = await api(`/api/bots/${bot.id}/trades?limit=500`);
+      renderTradesTable(allTrades, bot.id, true);
+    };
+
+    renderPnlHistoryChart(history);
+
+    document.getElementById("backtestBtn").onclick = async () => {
+      const btn = document.getElementById("backtestBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Backtesting…`;
+      try {
+        const cfg = bot.config || {};
+        const payload = { strategy: bot.strategy, config: cfg, capital: bot.capital || bot.cash || 10000, period: "6mo" };
+        const result = await api(`/api/backtest`, { method: "POST", body: JSON.stringify(payload) });
+        if (!result || result.error) throw new Error((result && result.error) || "Empty response from server");
+        backtestResultModal(bot, result);
+      } catch (e) {
+        toast("Backtest failed: " + (e.message || "Unknown error"), "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "📊 Backtest";
+      }
+    };
+
+    document.getElementById("resetBtn").onclick = () => {
+      confirmDialog({
+        title: "Reset Bot",
+        body: `This will reset "${bot.name}" back to its initial capital and clear all holdings and history. This cannot be undone.`,
+        confirmText: "Reset Bot",
+        danger: true,
+        onConfirm: async () => {
+          await api(`/api/bots/${botId}/reset`, { method: "POST" });
+          toast(`${bot.name} was reset`, "success");
+          renderBotDetail(params);
+        },
+      });
+    };
+
+    document.getElementById("deleteBtn").onclick = () => {
+      confirmDialog({
+        title: "Delete Bot",
+        body: `This will permanently delete "${bot.name}" and all of its trade history. This cannot be undone.`,
+        confirmText: "Delete Bot",
+        danger: true,
+        onConfirm: async () => {
+          await api(`/api/bots/${botId}`, { method: "DELETE" });
+          toast(`${bot.name} was deleted`, "success");
+          window.location.hash = "#!/";
+        },
+      });
+    };
+
+    document.getElementById("editConfigBtn").onclick = () => {
+      jsonEditorModal({
+        title: `Edit Config — ${bot.name}`,
+        initialValue: bot.config || {},
+        onSave: async (parsed) => {
+          await api(`/api/bots/${botId}/config`, { method: "POST", body: { config: parsed } });
+          toast("Config updated", "success");
+          renderBotDetail(params);
+        },
+      });
+    };
+
+    document.getElementById("checkSignalsBtn").onclick = async () => {
+      const btn = document.getElementById("checkSignalsBtn");
+      const wrap = document.getElementById("signalAnalysisWrap");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Checking…`;
+      wrap.innerHTML = `<div class="skeleton" style="height:14px;width:100%;margin-bottom:10px"></div><div class="skeleton" style="height:14px;width:100%;margin-bottom:10px"></div><div class="skeleton" style="height:14px;width:100%"></div>`;
+      try {
+        const result = await api(`/api/bots/${botId}/signal-check`);
+        renderSignalAnalysis(result);
+      } catch (e) {
+        wrap.innerHTML = errorState(e.message, "");
+        toast("Signal check failed: " + e.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "Check for signals";
+      }
+    };
+  } catch (e) {
+    app.innerHTML = `<div class="page">${errorState(e.message, "renderRoute")}</div>`;
+  }
+}
+
+function renderSignalAnalysis(result) {
+  const wrap = document.getElementById("signalAnalysisWrap");
+  const rows = (result && result.analysis) || [];
+
+  if (result && result.error) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:24px 0"><p>${esc(result.error)}</p></div>`;
+    return;
+  }
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:24px 0"><p>No symbols to analyze.</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Symbol</th><th>Status</th><th>Reason</th><th>Key Indicators</th></tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => {
+          const isSignal = r.status === "signal";
+          const icon = isSignal ? "✓" : r.status === "insufficient_data" ? "⚠" : "○";
+          const cls = isSignal ? "signal-ok" : "signal-warn";
+          const indicators = r.indicators && Object.keys(r.indicators).length
+            ? Object.entries(r.indicators)
+                .filter(([k]) => k !== "ranked_symbols" && k !== "checks")
+                .map(([k, v]) => `<span class="indicator-chip">${esc(k)}: ${esc(typeof v === "number" ? v : JSON.stringify(v))}</span>`)
+                .join("")
+            : `<span class="muted">—</span>`;
+          return `<tr>
+            <td><strong>${esc(r.symbol)}</strong></td>
+            <td class="${cls}">${icon} ${esc(r.status.replace("_", " "))}</td>
+            <td class="reason-cell">${esc(r.reason)}</td>
+            <td>${indicators}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderHoldingsTable(portfolio) {
+  const wrap = document.getElementById("holdingsTableWrap");
+  const holdings = portfolio && portfolio.holdings ? portfolio.holdings : [];
+  if (!holdings.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:36px 0"><p>No open holdings.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Qty</th><th>Avg Price</th><th>Current Price</th><th>Value</th><th>Unrealized P&amp;L</th><th>%</th></tr>
+      </thead>
+      <tbody>
+        ${holdings.map(h => {
+          const value = pick(h, "value", "market_value");
+          const upnl = pick(h, "unrealized_pnl");
+          const upct = pick(h, "unrealized_pnl_pct", "unrealized_pct");
+          return `<tr>
+            <td><strong title="${esc(h.symbol)}">${esc(productName(h.symbol))}</strong><br><span class="muted" style="font-size:11px">${esc(h.symbol)}</span></td>
+            <td>${fmtNum(h.quantity)}</td>
+            <td>${fmtMoney(h.avg_price)}</td>
+            <td>${fmtMoney(h.current_price)}</td>
+            <td>${fmtMoney(value)}</td>
+            <td class="${pnlClass(upnl)}">${fmtMoney(upnl)}</td>
+            <td class="${pnlClass(upct)}">${fmtPct(upct)}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderTradesTable(trades, botId, filtered) {
+  const wrap = document.getElementById("tradesTableWrap");
+  if (!trades || !trades.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:36px 0"><p>No trades yet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Product</th><th>Market</th><th>Side</th><th>Qty</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${trades.map(t => `
+          <tr>
+            <td class="muted">${fmtDate(t.entry_date)}</td>
+            <td><strong title="${esc(t.symbol)}">${esc(t.name || t.symbol)}</strong><br><span class="muted" style="font-size:11px">${esc(t.symbol)}</span></td>
+            <td>${t.market_flag || ''} ${t.market_name || ''}</td>
+            <td class="${t.side === 'buy' ? 'side-buy' : 'side-sell'}">${esc((t.side || "").toUpperCase())}</td>
+            <td>${fmtNum(t.quantity)}</td>
+            <td>${fmtMoney(t.entry_price)}</td>
+            <td>${t.exit_price != null ? fmtMoney(t.exit_price) : "—"}</td>
+            <td class="${pnlClass(t.pnl)}">${t.pnl != null ? fmtMoney(t.pnl) : "—"}</td>
+            <td class="${t.status === 'open' ? 'status-open' : 'status-closed'}">${esc((t.status || "").toUpperCase())}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderTopPnlTrades(trades) {
+  const wrap = document.getElementById("topPnlTableWrap");
+  if (!wrap) return;
+  const closed = (trades || []).filter(t => t.status === "closed" && t.pnl != null);
+  if (!closed.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:24px 0"><p>No closed trades yet.</p></div>`;
+    return;
+  }
+  const sorted = closed.sort((a, b) => (b.pnl || 0) - (a.pnl || 0));
+  const top = sorted.slice(0, 20);
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>#</th><th>Product</th><th>Market</th><th>Side</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        ${top.map((t, i) => `
+          <tr>
+            <td class="muted" style="text-align:center">${i+1}</td>
+            <td><strong title="${esc(t.symbol)}">${esc(t.name || t.symbol)}</strong><br><span class="muted" style="font-size:11px">${esc(t.symbol)}</span></td>
+            <td>${t.market_flag || ''} ${t.market_name || ''}</td>
+            <td class="${t.side === 'buy' ? 'side-buy' : 'side-sell'}">${esc((t.side || "").toUpperCase())}</td>
+            <td>${fmtMoney(t.entry_price)}</td>
+            <td>${t.exit_price != null ? fmtMoney(t.exit_price) : "—"}</td>
+            <td class="${pnlClass(t.pnl)}"><strong>${fmtMoney(t.pnl)}</strong></td>
+            <td class="muted" style="font-size:12px">${fmtDate(t.entry_date)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderPnlHistoryChart(history) {
+  const ctx = document.getElementById("pnlHistoryChart");
+  if (!history || !history.length) {
+    ctx.parentElement.innerHTML = `<div class="empty-state" style="padding:40px 0"><p>No history data yet. Run this bot to start tracking performance.</p></div>`;
+    return;
+  }
+  state.charts.pnlHistory = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: history.map(h => fmtDate(h.snapshot_date)),
+      datasets: [{
+        label: "P&L ($)",
+        data: history.map(h => Number(h.pnl_total)),
+        borderColor: "#58a6ff",
+        backgroundColor: "rgba(88,166,255,0.12)",
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1f2937",
+          borderColor: "#30363d",
+          borderWidth: 1,
+          callbacks: { label: (c) => `P&L: ${fmtMoney(c.raw)}` },
+        },
+      },
+      scales: {
+        x: { ticks: { color: "#8b949e", maxRotation: 0 }, grid: { display: false } },
+        y: { ticks: { color: "#8b949e", callback: (v) => fmtMoney(v) }, grid: { color: "#21262d" } },
+      },
+    },
+  });
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   INTRADAY PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderIntraday() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Intraday</h1>
+          <div class="page-subtitle" id="intradayUpdated">Loading…</div>
+        </div>
+        <div>
+          <div class="hero-value" id="intradayTotalValue">—</div>
+          <div class="muted" style="text-align:right;font-size:12px">Portfolio Value (target €2000)</div>
+        </div>
+      </div>
+      <div class="flex-between" style="margin-bottom:18px">
+        <div id="intradayConnStatus" class="header-badges"></div>
+        <div class="action-row">
+          <button class="btn btn-primary" id="intradayToggleBtn">…</button>
+        </div>
+      </div>
+      <div id="intradayBody">${skeletonCards(3)}</div>
+    </div>`;
+
+  await loadIntradayData();
+
+  state.autoRefreshTimer = setInterval(() => {
+    if (currentHashPath() === "/intraday") loadIntradayData(true);
+  }, 15000);
+}
+
+async function loadIntradayData(silent = false) {
+  const body = document.getElementById("intradayBody");
+  if (!body) return;
+  try {
+    const [bots, status, portfolio] = await Promise.all([
+      api("/api/intraday/bots"),
+      api("/api/intraday/status"),
+      api("/api/intraday/portfolio").catch(() => null),
+    ]);
+
+    const totalEl = document.getElementById("intradayTotalValue");
+    if (totalEl) totalEl.textContent = fmtEuro(status.total_portfolio_value);
+
+    const updatedEl = document.getElementById("intradayUpdated");
+    if (updatedEl) updatedEl.textContent = `Last updated ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
+
+    const connEl = document.getElementById("intradayConnStatus");
+    if (connEl) {
+      connEl.innerHTML = `
+        <span class="pill ${status.kraken_connected ? "badge-active" : "badge-inactive"}">Kraken ${status.kraken_connected ? "connected" : "disconnected"}</span>
+        ${status.alpaca_available ? `<span class="pill ${status.alpaca_connected ? "badge-active" : "badge-inactive"}">Alpaca ${status.alpaca_connected ? "connected" : "disconnected"}</span>` : `<span class="pill badge-inactive">Alpaca not configured</span>`}
+        <span class="pill ${status.running ? "badge-active" : "badge-inactive"}">Scheduler ${status.running ? "running" : "stopped"}</span>`;
+    }
+
+    const toggleBtn = document.getElementById("intradayToggleBtn");
+    if (toggleBtn) {
+      toggleBtn.disabled = false;
+      toggleBtn.textContent = status.running ? "■ Stop" : "▶ Start";
+      toggleBtn.className = status.running ? "btn btn-danger" : "btn btn-primary";
+      toggleBtn.onclick = async () => {
+        toggleBtn.disabled = true;
+        toggleBtn.innerHTML = `<span class="spinner"></span> ${status.running ? "Stopping…" : "Starting…"}`;
+        try {
+          await api(status.running ? "/api/intraday/stop" : "/api/intraday/start", { method: "POST" });
+          toast(status.running ? "Scheduler stopped" : "Scheduler started", "success");
+          loadIntradayData();
+        } catch (e) {
+          toast(e.message, "error");
+          toggleBtn.disabled = false;
+        }
+      };
+    }
+
+    if (!bots || bots.length === 0) {
+      body.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">⚡</div>
+        <h3>No intraday bots configured</h3>
+      </div>`;
+      return;
+    }
+
+    body.innerHTML = `<div class="grid" id="intradayGrid"></div>`;
+    const grid = document.getElementById("intradayGrid");
+    grid.innerHTML = bots.map(renderIntradayBotCard).join("");
+    bots.forEach(bot => {
+      const cardEl = document.getElementById(`intraday-botcard-${bot.name}`);
+      if (cardEl) cardEl.addEventListener("click", () => { window.location.hash = `#!/intraday/bot/${bot.name}`; });
+    });
+  } catch (e) {
+    if (!silent) body.innerHTML = errorState(e.message, "loadIntradayData");
+    else toast("Auto-refresh failed: " + e.message, "error");
+  }
+}
+
+function renderIntradayBotCard(bot) {
+  const statusBadge = bot.status === "running" ? `<span class="pill badge-active">Running</span>` : `<span class="pill badge-inactive">Stopped</span>`;
+  return `
+    <div class="card card-clickable" id="intraday-botcard-${bot.name}" title="View ${esc(bot.display_name || bot.name)} detail">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${esc(bot.display_name || bot.name)}</div>
+          <div class="header-badges"><span class="pill">${bot.timeframe}min</span>${statusBadge}</div>
+          ${bot.description ? `<div class="strategy-desc">${esc(bot.description)}</div>` : ""}
+          <div class="muted" style="font-size:11px">${bot.symbols.length} symbols · budget ${fmtEuro(bot.budget)}</div>
+        </div>
+      </div>
+      <div class="card-value">${fmtEuro(bot.total_value)}</div>
+      <div class="card-pnl ${pnlClass(bot.pnl)}">${fmtEuro(bot.pnl)} (${fmtPct(bot.pnl_pct)})</div>
+      <div class="muted" style="font-size:12px;margin-top:6px">${bot.positions.length} open position${bot.positions.length === 1 ? "" : "s"} · last trade ${bot.last_trade_at ? fmtTime(bot.last_trade_at) : "never"}</div>
+    </div>`;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   INTRADAY BOT DETAIL PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderIntradayBotDetail(params) {
+  const name = params.name;
+  const app = document.getElementById("app");
+  app.innerHTML = `<div class="page">
+    <div class="skeleton" style="height:28px;width:280px;margin-bottom:8px"></div>
+    <div class="skeleton" style="height:14px;width:180px;margin-bottom:24px"></div>
+    ${skeletonTable(4)}
+  </div>`;
+
+  try {
+    const [bot, trades, snapshots] = await Promise.all([
+      api(`/api/intraday/bots/${name}`),
+      api(`/api/intraday/bots/${name}/trades?limit=50`).catch(() => []),
+      api(`/api/intraday/bots/${name}/snapshots?limit=200`).catch(() => []),
+    ]);
+
+    if (!bot || bot.error) {
+      app.innerHTML = `<div class="page">${errorState("Bot not found", "renderRoute")}</div>`;
+      return;
+    }
+
+    const statusBadge = bot.status === "running" ? `<span class="pill badge-active">Running</span>` : `<span class="pill badge-inactive">Stopped</span>`;
+
+    app.innerHTML = `
+      <div class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">${esc(bot.display_name || bot.name)}</h1>
+            <div class="header-badges" style="margin-top:6px">
+              <span class="pill">${bot.timeframe}min</span>${statusBadge}
+              ${bot.description ? `<div class="strategy-desc" style="margin-top:6px">${esc(bot.description)}</div>` : ""}
+              <div class="muted" style="font-size:11px;margin-top:4px">${bot.symbols.length} symbols · ${esc(bot.symbols.slice(0, 5).join(", "))}…</div>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-ghost" id="intradayBacktestBtn" title="Run a historical backtest of this bot's strategy">📊 Backtest</button>
+            <a href="#!/intraday" class="btn btn-ghost">← Back to Intraday</a>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-card"><div class="metric-label">Budget</div><div class="metric-value">${fmtEuro(bot.budget)}</div></div>
+          <div class="metric-card"><div class="metric-label">Cash</div><div class="metric-value">${fmtEuro(bot.cash)}</div></div>
+          <div class="metric-card"><div class="metric-label">Holdings Value</div><div class="metric-value">${fmtEuro(bot.holdings_value)}</div></div>
+          <div class="metric-card"><div class="metric-label">Total Value</div><div class="metric-value">${fmtEuro(bot.total_value)}</div></div>
+          <div class="metric-card"><div class="metric-label">P&amp;L</div><div class="metric-value ${pnlClass(bot.pnl)}">${fmtEuro(bot.pnl)}</div></div>
+          <div class="metric-card"><div class="metric-label">P&amp;L %</div><div class="metric-value ${pnlClass(bot.pnl_pct)}">${fmtPct(bot.pnl_pct)}</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Portfolio Value History</div>
+          <div class="chart-wrap"><canvas id="intradayPnlChart"></canvas></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="panel-title">Positions</div>
+          <div id="intradayPositionsWrap"></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="panel-title">Last Signals</div>
+          <div id="intradaySignalsWrap"></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="panel-title">Recent Trades</div>
+          <div id="intradayTradesWrap"></div>
+        </div>
+
+        <div class="panel table-scroll">
+          <div class="flex-between">
+            <div class="panel-title" style="margin-bottom:0">🏆 Top P&amp;L Trades</div>
+            <span class="muted" style="font-size:12px">Closed trades sorted by profit</span>
+          </div>
+          <div id="topPnlTableWrap"></div>
+        </div>
+
+        ${renderIntradayRiskMetricsPanel(trades)}
+      </div>`;
+
+    renderIntradayPositionsTable(bot.positions);
+    renderIntradaySignalsTable(bot.last_signals);
+    renderIntradayTradesTable(trades);
+    renderTopPnlTrades(trades);
+    renderIntradayPnlChart(snapshots);
+
+    document.getElementById("intradayBacktestBtn").onclick = () => intradayBacktestPeriodModal(bot);
+
+    state.autoRefreshTimer = setInterval(() => {
+      if (currentHashPath() === `/intraday/bot/${name}`) renderIntradayBotDetail(params);
+    }, 15000);
+  } catch (e) {
+    app.innerHTML = `<div class="page">${errorState(e.message, "renderRoute")}</div>`;
+  }
+}
+
+function renderIntradayPositionsTable(positions) {
+  const wrap = document.getElementById("intradayPositionsWrap");
+  if (!positions || !positions.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:36px 0"><p>No open positions.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Qty</th><th>Avg Price</th><th>Current Price</th><th>Value</th><th>Unrealized P&amp;L</th></tr>
+      </thead>
+      <tbody>
+        ${positions.map(p => `
+          <tr>
+            <td><strong title="${esc(p.symbol)}">${esc(productName(p.symbol))}</strong><br><span class="muted" style="font-size:11px">${esc(p.symbol)}</span></td>
+            <td>${fmtNum(p.quantity)}</td>
+            <td>${fmtEuro(p.avg_price)}</td>
+            <td>${fmtEuro(p.current_price)}</td>
+            <td>${fmtEuro(p.market_value)}</td>
+            <td class="${pnlClass(p.unrealized_pnl)}">${fmtEuro(p.unrealized_pnl)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderIntradaySignalsTable(signals) {
+  const wrap = document.getElementById("intradaySignalsWrap");
+  if (!signals || !signals.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:36px 0"><p>No signals on the last analysis pass.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        ${signals.map(s => `
+          <tr>
+            <td><strong>${esc(s.symbol)}</strong></td>
+            <td class="${s.side === 'buy' ? 'side-buy' : 'side-sell'}">${esc((s.side || "").toUpperCase())}</td>
+            <td>${fmtNum(s.quantity)}</td>
+            <td>${fmtEuro(s.price)}</td>
+            <td class="reason-cell">${esc(s.reason || "")}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderIntradayTradesTable(trades) {
+  const wrap = document.getElementById("intradayTradesWrap");
+  if (!trades || !trades.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:36px 0"><p>No trades yet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Time</th><th>Product</th><th>Side</th><th>Qty</th><th>Price</th><th>Total</th><th>P&amp;L</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        ${trades.map(t => `
+          <tr>
+            <td>${fmtTime(t.executed_at || t.time)}</td>
+            <td><strong>${esc(productName(t.symbol))}</strong><br><span class="muted">${esc(t.symbol)}</span></td>
+            <td class="${t.side === 'buy' ? 'side-buy' : 'side-sell'}">${esc((t.side || '').toUpperCase())}</td>
+            <td>${fmtNum(t.quantity)}</td>
+            <td>${fmtEuro(t.price)}</td>
+            <td>${fmtEuro(t.total)}</td>
+            <td class="${pnlClass(t.pnl)}\">${t.pnl != null ? fmtEuro(t.pnl) : '—'}</td>
+            <td class="reason-cell">${esc(t.reason || '')}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderIntradayPnlChart(snapshots) {
+  const ctx = document.getElementById("intradayPnlChart");
+  if (!snapshots || !snapshots.length) {
+    ctx.parentElement.innerHTML = `<div class="empty-state" style="padding:40px 0"><p>No history yet. Start the scheduler to begin tracking performance.</p></div>`;
+    return;
+  }
+  state.charts.intradayPnl = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: snapshots.map(s => fmtTime(s.snapshot_time)),
+      datasets: [{
+        label: "Total Value (€)",
+        data: snapshots.map(s => Number(s.total_value)),
+        borderColor: "#58a6ff",
+        backgroundColor: "rgba(88,166,255,0.12)",
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1f2937",
+          borderColor: "#30363d",
+          borderWidth: 1,
+          callbacks: { label: (c) => `Value: ${fmtEuro(c.raw)}` },
+        },
+      },
+      scales: {
+        x: { ticks: { color: "#8b949e", maxRotation: 0 }, grid: { display: false } },
+        y: { ticks: { color: "#8b949e", callback: (v) => fmtEuro(v) }, grid: { color: "#21262d" } },
+      },
+    },
+  });
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   BACKTEST COMPARISON PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderBacktestPage() {
+  const app = document.getElementById("app");
+  const allStrategies = ["sma_crossover", "rsi_mean_reversion", "momentum", "bollinger_bands", "dca", "pairs_trading", "fundamental", "sentiment", "sentiment_av"];
+  const displayNames = {
+    "sma_crossover": "SMA Crossover", "rsi_mean_reversion": "RSI Reversion",
+    "momentum": "Momentum", "bollinger_bands": "Bollinger Bands",
+    "dca": "Dollar Cost Avg", "pairs_trading": "Pairs Trading",
+    "fundamental": "Fundamental", "sentiment": "Sentiment", "sentiment_av": "Sentiment (AV)"
+  };
+
+  app.innerHTML = `
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Backtest Comparison</h1>
+          <div class="page-subtitle" id="backtestSubtitle">Compare strategies side by side</div>
+        </div>
+        <div class="action-row">
+          <select id="backtestPeriod" style="padding:6px 10px;font-size:14px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text)">
+            <option value="6mo">6 months</option>
+            <option value="1y" selected>1 year</option>
+            <option value="2y">2 years</option>
+          </select>
+          <button class="btn btn-primary" id="runBacktestCompareBtn">▶ Run All Backtests</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px" id="backtestStrategySelection">
+        ${allStrategies.map(s => `
+          <label class="checkbox-label" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer">
+            <input type="checkbox" value="${s}" checked class="backtest-strategy-cb"> ${displayNames[s] || s}
+          </label>
+        `).join("")}
+      </div>
+
+      <div id="backtestProgress" style="display:none;margin-bottom:16px">
+        <div class="skeleton" style="height:20px;width:80%;margin-bottom:8px"></div>
+        <div id="backtestProgressText" class="muted" style="font-size:13px;text-align:center">Initializing…</div>
+      </div>
+
+      <div id="backtestErrorsWrap" style="display:none;margin-bottom:16px"></div>
+
+      <div id="backtestResultsArea" style="display:none">
+        <div class="panel table-scroll">
+          <div class="panel-title">Results Summary</div>
+          <div class="muted" id="backtestPeriodLine" style="font-size:13px;margin-bottom:10px"></div>
+          <div id="backtestTableWrap"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Return Comparison</div>
+          <div class="chart-wrap" style="height:280px"><canvas id="backtestCompareChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Key Metrics Heatmap</div>
+          <div id="backtestHeatmapWrap"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Alpha/Beta vs SPY &amp; Strategy Correlation</span>
+          <button class="btn btn-ghost" id="runBenchmarkBtn">▶ Run Benchmark</button>
+        </div>
+        <div class="muted" id="benchmarkSubtitle" style="font-size:13px;margin-bottom:10px">Compares each active strategy's daily returns against SPY over the selected period.</div>
+        <div id="benchmarkTableWrap"></div>
+        <div id="benchmarkCorrWrap" style="margin-top:16px"></div>
+      </div>
+    </div>`;
+
+  document.getElementById("runBacktestCompareBtn").onclick = async () => {
+    const btn = document.getElementById("runBacktestCompareBtn");
+    const checked = [...document.querySelectorAll(".backtest-strategy-cb:checked")].map(cb => cb.value);
+    if (!checked.length) { toast("Select at least one strategy", "error"); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Running…';
+
+    const progress = document.getElementById("backtestProgress");
+    const progressText = document.getElementById("backtestProgressText");
+    progress.style.display = "block";
+
+    const period = document.getElementById("backtestPeriod").value;
+
+    try {
+      const allResults = [];
+      const errors = [];
+
+      for (let i = 0; i < checked.length; i++) {
+        const strat = checked[i];
+        progressText.textContent = `Running ${displayNames[strat] || strat} (${i+1}/${checked.length})…`;
+        try {
+          const data = await api("/api/backtest", {
+            method: "POST",
+            body: JSON.stringify({
+              strategy: strat,
+              config: {},
+              capital: 10000,
+              period: period
+            })
+          });
+          data.display_name = displayNames[strat] || strat;
+          data.strategy = strat;
+          allResults.push(data);
+        } catch (e) {
+          errors.push({strategy: strat, error: e.message});
+        }
+      }
+
+      const results = allResults;
+      progressText.textContent = "Building results…";
+
+      if (!results.length) {
+        toast("No results returned", "error");
+        btn.disabled = false;
+        btn.innerHTML = "▶ Run All Backtests";
+        progress.style.display = "none";
+        return;
+      }
+
+      // Sort by return descending for table
+      const sorted = [...results].sort((a,b) => (b.total_return_pct||0) - (a.total_return_pct||0));
+
+      // Period line — show the actual date range the backend ran over (can
+      // differ slightly per strategy depending on which symbols had data).
+      const periodLine = document.getElementById("backtestPeriodLine");
+      const ranges = [...new Set(results.map(r => `${r.start_date} → ${r.end_date}`))];
+      periodLine.textContent = ranges.length === 1
+        ? `Period: ${ranges[0]} (${period})`
+        : `Period: ${period} — date range varies by strategy (hover rows for exact dates)`;
+
+      // Errors — list which strategies failed and why, not just a count.
+      const errWrap = document.getElementById("backtestErrorsWrap");
+      if (errors.length) {
+        errWrap.style.display = "block";
+        errWrap.innerHTML = `
+          <div class="panel" style="border-color:var(--red)">
+            <div class="panel-title" style="color:var(--red)">${errors.length} strategy(ies) failed</div>
+            ${errors.map(e => `<div style="font-size:13px;margin-bottom:4px">
+              <strong>${esc(displayNames[e.strategy] || e.strategy)}</strong>: ${esc(e.error)}
+            </div>`).join("")}
+          </div>`;
+      } else {
+        errWrap.style.display = "none";
+        errWrap.innerHTML = "";
+      }
+
+      // Table
+      const tbl = document.getElementById("backtestTableWrap");
+      tbl.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>Strategy</th><th>Return</th><th>Sharpe</th><th>Max DD</th><th>Win Rate</th><th>Trades</th><th>Final Value</th><th>Period</th></tr>
+          </thead>
+          <tbody>
+            ${sorted.map(r => `
+              <tr>
+                <td><strong>${esc(r.display_name || r.strategy)}</strong></td>
+                <td class="${pnlClass(r.total_return_pct)}"><strong>${fmtPct(r.total_return_pct)}</strong></td>
+                <td class="${r.sharpe_ratio > 1 ? 'side-buy' : r.sharpe_ratio > 0 ? '' : 'side-sell'}">${fmtNum(r.sharpe_ratio, 2)}</td>
+                <td class="side-sell">${fmtPct(r.max_drawdown_pct)}</td>
+                <td>${fmtNum(r.win_rate, 1)}%</td>
+                <td>${r.total_trades}</td>
+                <td>${fmtMoney(r.final_value)}</td>
+                <td class="muted" style="font-size:12px">${esc(r.start_date)} → ${esc(r.end_date)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+
+      // Chart
+      const labels = results.map(r => r.display_name || r.strategy);
+      const rets = results.map(r => r.total_return_pct || 0);
+      const sharpes = results.map(r => r.sharpe_ratio || 0);
+      const ctx = document.getElementById("backtestCompareChart").getContext("2d");
+      if (state.charts.backtestCompare) state.charts.backtestCompare.destroy();
+      state.charts.backtestCompare = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label: "Return %", data: rets, borderColor: "rgba(34,197,94,0.9)", fill: false, tension: 0.3, pointRadius: 2, yAxisID: "y" },
+            { label: "Sharpe", data: sharpes, borderColor: "rgba(59,130,246,0.9)", fill: false, tension: 0.3, pointRadius: 2, yAxisID: "y1" },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+          scales: {
+            y: { beginAtZero: true },
+            y1: { position: "right", beginAtZero: true, grid: { display: false } }
+          }
+        }
+      });
+
+      // Best/worst cards
+      const hm = document.getElementById("backtestHeatmapWrap");
+      const best = results.reduce((a,b) => (a.total_return_pct||0) > (b.total_return_pct||0) ? a : b);
+      const worst = results.reduce((a,b) => (a.total_return_pct||0) < (b.total_return_pct||0) ? a : b);
+      const bestSh = results.reduce((a,b) => (a.sharpe_ratio||0) > (b.sharpe_ratio||0) ? a : b);
+      hm.innerHTML = `
+        <div class="metrics-row">
+          <div class="metric-card" style="border-left:3px solid var(--green)">
+            <div class="metric-label">🏆 Best Return</div>
+            <div class="metric-value">${esc(best.display_name || best.strategy)}</div>
+            <div class="side-buy">${fmtPct(best.total_return_pct)}</div>
+          </div>
+          <div class="metric-card" style="border-left:3px solid var(--red)">
+            <div class="metric-label">⚠️ Worst Return</div>
+            <div class="metric-value">${esc(worst.display_name || worst.strategy)}</div>
+            <div class="side-sell">${fmtPct(worst.total_return_pct)}</div>
+          </div>
+          <div class="metric-card" style="border-left:3px solid #3b82f6">
+            <div class="metric-label">📊 Best Sharpe</div>
+            <div class="metric-value">${esc(bestSh.display_name || bestSh.strategy)}</div>
+            <div class="side-buy">${fmtNum(bestSh.sharpe_ratio, 2)}</div>
+          </div>
+        </div>`;
+
+      document.getElementById("backtestResultsArea").style.display = "block";
+      if (errors.length) toast(`${errors.length} strategy(ies) failed`, "error");
+      else toast(`✅ ${results.length} backtests completed`, "success");
+    } catch (e) {
+      toast("Backtest failed: " + e.message, "error");
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = "▶ Run All Backtests";
+    progress.style.display = "none";
+  };
+
+  document.getElementById("runBenchmarkBtn").onclick = async () => {
+    const btn = document.getElementById("runBenchmarkBtn");
+    const period = document.getElementById("backtestPeriod").value;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Running…';
+
+    try {
+      const data = await api(`/api/benchmark?period=${encodeURIComponent(period)}`);
+      const strategies = data.strategies || {};
+      const names = Object.keys(strategies);
+
+      const tbl = document.getElementById("benchmarkTableWrap");
+      if (!names.length) {
+        tbl.innerHTML = `<div class="muted">No benchmark data returned.</div>`;
+      } else {
+        tbl.innerHTML = `
+          <table>
+            <thead>
+              <tr><th>Strategy</th><th>Alpha (daily)</th><th>Beta</th><th>Information Ratio</th><th>Tracking Error</th></tr>
+            </thead>
+            <tbody>
+              ${names.map(n => {
+                const s = strategies[n];
+                if (s.error) {
+                  return `<tr><td><strong>${esc(s.display_name || n)}</strong></td><td colspan="4" class="side-sell">${esc(s.error)}</td></tr>`;
+                }
+                return `
+                  <tr>
+                    <td><strong>${esc(s.display_name || n)}</strong></td>
+                    <td class="${s.alpha_daily > 0 ? 'side-buy' : s.alpha_daily < 0 ? 'side-sell' : ''}">${fmtNum(s.alpha_daily * 100, 4)}%</td>
+                    <td>${fmtNum(s.beta, 2)}</td>
+                    <td class="${s.information_ratio > 0 ? 'side-buy' : s.information_ratio < 0 ? 'side-sell' : ''}">${fmtNum(s.information_ratio, 2)}</td>
+                    <td>${fmtNum(s.tracking_error * 100, 3)}%</td>
+                  </tr>`;
+              }).join("")}
+            </tbody>
+          </table>`;
+      }
+
+      const corrWrap = document.getElementById("benchmarkCorrWrap");
+      const corr = data.correlation_matrix || {};
+      const corrNames = Object.keys(corr);
+      if (!corrNames.length) {
+        corrWrap.innerHTML = "";
+      } else {
+        const cellColor = (v) => {
+          if (v === null || v === undefined) return "background:var(--card)";
+          const t = Math.max(-1, Math.min(1, v));
+          // red for negative correlation, green for positive, faded near 0
+          const color = t >= 0 ? `rgba(34,197,94,${Math.abs(t) * 0.6})` : `rgba(239,68,68,${Math.abs(t) * 0.6})`;
+          return `background:${color}`;
+        };
+        corrWrap.innerHTML = `
+          <div class="panel-title" style="font-size:14px">Correlation Matrix</div>
+          <table>
+            <thead>
+              <tr><th></th>${corrNames.map(n => `<th>${esc(strategies[n]?.display_name || n)}</th>`).join("")}</tr>
+            </thead>
+            <tbody>
+              ${corrNames.map(row => `
+                <tr>
+                  <td><strong>${esc(strategies[row]?.display_name || row)}</strong></td>
+                  ${corrNames.map(col => {
+                    const v = corr[row][col];
+                    return `<td style="${cellColor(v)};text-align:center">${v === null || v === undefined ? "—" : fmtNum(v, 2)}</td>`;
+                  }).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>`;
+      }
+
+      toast(`✅ Benchmark computed for ${names.length} strategy(ies)`, "success");
+    } catch (e) {
+      toast("Benchmark failed: " + e.message, "error");
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = "▶ Run Benchmark";
+  };
+
+  document.getElementById("backtestSubtitle").textContent = "Select strategies and click to compare";
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   CREATE BOT PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderCreateBot() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Create Bot</h1>
+          <div class="page-subtitle">Configure and launch a new paper trading bot</div>
+        </div>
+      </div>
+      <form class="form-card" id="createBotForm">
+        <div class="form-group">
+          <label for="botName">Bot Name</label>
+          <input type="text" id="botName" placeholder="e.g. Momentum Alpha" autocomplete="off">
+          <div class="field-error" id="nameError" style="display:none">Name is required</div>
+        </div>
+
+        <div class="form-group">
+          <label for="botStrategy">Strategy</label>
+          <select id="botStrategy"><option value="">Loading strategies…</option></select>
+          <div class="field-error" id="strategyError" style="display:none">Please select a strategy</div>
+          <div class="strategy-info" id="strategyInfo" style="display:none"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="botCapital">Starting Capital</label>
+          <input type="number" id="botCapital" value="10000" min="0" step="100">
+        </div>
+
+        <div class="form-group">
+          <label for="botConfig">Advanced Config (JSON)</label>
+          <textarea id="botConfig" placeholder="{}"></textarea>
+          <div class="field-hint">Optional — overrides the strategy's default configuration.</div>
+          <div class="field-error" id="configError" style="display:none"></div>
+        </div>
+
+        <div class="action-row">
+          <button type="submit" class="btn btn-primary" id="createBotSubmit">Create Bot</button>
+          <a href="#!/" class="btn btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </div>`;
+
+  let strategies = [];
+  try {
+    strategies = await api("/api/strategies");
+  } catch (e) {
+    toast("Failed to load strategies: " + e.message, "error");
+  }
+
+  const select = document.getElementById("botStrategy");
+  select.innerHTML = `<option value="">Select a strategy…</option>` +
+    strategies.map(s => `<option value="${esc(s.id || s.name)}">${esc(s.display_name || s.id || s.name)}</option>`).join("");
+
+  const infoBox = document.getElementById("strategyInfo");
+  select.onchange = () => {
+    const s = strategies.find(x => (x.id || x.name) === select.value);
+    if (!s) { infoBox.style.display = "none"; return; }
+    infoBox.style.display = "block";
+    infoBox.innerHTML = `<div>${esc(s.description || "")}</div><pre>${esc(JSON.stringify(s.default_config || {}, null, 2))}</pre>`;
+    document.getElementById("botConfig").placeholder = JSON.stringify(s.default_config || {}, null, 2);
+  };
+
+  document.getElementById("createBotForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("botName").value.trim();
+    const strategy = select.value;
+    const capital = document.getElementById("botCapital").value;
+    const configText = document.getElementById("botConfig").value.trim();
+
+    const nameErr = document.getElementById("nameError");
+    const strategyErr = document.getElementById("strategyError");
+    const configErr = document.getElementById("configError");
+    nameErr.style.display = "none";
+    strategyErr.style.display = "none";
+    configErr.style.display = "none";
+
+    let valid = true;
+    if (!name) { nameErr.style.display = "block"; valid = false; }
+    if (!strategy) { strategyErr.style.display = "block"; valid = false; }
+
+    let config = {};
+    if (configText) {
+      try {
+        config = JSON.parse(configText);
+      } catch (err) {
+        configErr.textContent = "Invalid JSON: " + err.message;
+        configErr.style.display = "block";
+        valid = false;
+      }
+    } else {
+      const s = strategies.find(x => (x.id || x.name) === strategy);
+      config = (s && s.default_config) || {};
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById("createBotSubmit");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Creating…`;
+    try {
+      await api("/api/bots", {
+        method: "POST",
+        body: { name, strategy, capital: Number(capital) || 10000, config },
+      });
+      toast(`Bot "${name}" created`, "success");
+      window.location.hash = "#!/";
+    } catch (err) {
+      toast(err.message, "error");
+      btn.disabled = false;
+      btn.textContent = "Create Bot";
+    }
+  });
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   PORTFOLIO PAGE
+   ═════════════════════════════════════════════════════════════════════════ */
+
+async function renderPortfolio() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Portfolio</h1>
+          <div class="page-subtitle">Aggregate view across all bots</div>
+        </div>
+      </div>
+      <div id="portfolioBody">${skeletonCards(4)}${skeletonTable(4)}</div>
+    </div>`;
+
+  try {
+    const [summary, bots] = await Promise.all([api("/api/portfolio"), api("/api/bots").catch(() => [])]);
+    const body = document.getElementById("portfolioBody");
+
+    const allocation = summary.allocation_by_strategy || [];
+    const holdings = summary.holdings || [];
+
+    body.innerHTML = `
+      <div class="metrics-row" style="grid-template-columns:repeat(5,1fr)">
+        <div class="metric-card"><div class="metric-label">Total Value</div><div class="metric-value">${fmtMoney(summary.total_value)}</div></div>
+        <div class="metric-card"><div class="metric-label">Total Cash</div><div class="metric-value">${fmtMoney(summary.total_cash)}</div></div>
+        <div class="metric-card"><div class="metric-label">Total Invested</div><div class="metric-value">${fmtMoney(summary.total_invested)}</div></div>
+        <div class="metric-card"><div class="metric-label">Total P&amp;L</div><div class="metric-value ${pnlClass(summary.total_pnl)}">${fmtMoney(summary.total_pnl)}</div></div>
+        <div class="metric-card"><div class="metric-label">P&amp;L %</div><div class="metric-value ${pnlClass(pick(summary, "total_pnl_pct", "total_pnl_percent"))}">${fmtPct(pick(summary, "total_pnl_pct", "total_pnl_percent"))}</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Performance Periods</div>
+        <div id="performancePeriodsWrap" class="metrics-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+          <div class="skel-card"><div class="skeleton" style="height:14px;width:60%;margin-bottom:10px"></div><div class="skeleton" style="height:20px;width:40%"></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Allocation by Strategy</div>
+        ${allocation.length ? '<div class="chart-wrap donut"><canvas id="allocationChart"></canvas></div>' : '<p class="muted">No allocation data yet.</p>'}
+      </div>
+
+      <div class="panel table-scroll">
+        <div class="panel-title">All Holdings</div>
+        ${holdings.length ? `
+        <table>
+          <thead>
+            <tr><th>Bot</th><th>Strategy</th><th>Symbol</th><th>Qty</th><th>Avg Price</th><th>Current Price</th><th>Value</th><th>Unrealized P&amp;L</th></tr>
+          </thead>
+          <tbody>
+            ${holdings.map(h => `
+              <tr>
+                <td><a href="#!/bot/${h.bot_id}">${esc(h.bot_name)}</a></td>
+                <td>${strategyPill(h.strategy)}</td>
+                <td><strong>${esc(h.symbol)}</strong></td>
+                <td>${fmtNum(h.quantity)}</td>
+                <td>${fmtMoney(h.avg_price)}</td>
+                <td>${fmtMoney(h.current_price)}</td>
+                <td>${fmtMoney(pick(h, "value", "market_value"))}</td>
+                <td class="${pnlClass(h.unrealized_pnl)}">${fmtMoney(h.unrealized_pnl)}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>` : `<div class="empty-state" style="padding:36px 0"><p>No holdings across any bot yet.</p></div>`}
+      </div>`;
+
+    if (allocation.length) {
+      const ctx = document.getElementById("allocationChart");
+      const colors = allocation.map(a => strategyColor(a.strategy));
+      state.charts.allocation = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: allocation.map(a => strategyLabel(a.strategy)),
+          datasets: [{
+            data: allocation.map(a => a.total_value),
+            backgroundColor: colors,
+            borderColor: "#0d1117",
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { color: "#e6edf3", boxWidth: 12, padding: 14 } },
+            tooltip: {
+              backgroundColor: "#1f2937",
+              borderColor: "#30363d",
+              borderWidth: 1,
+              callbacks: { label: (c) => `${c.label}: ${fmtMoney(c.raw)}` },
+            },
+          },
+        },
+      });
+    }
+
+    loadPerformancePeriods(bots || [], summary.total_value);
+  } catch (e) {
+    document.getElementById("portfolioBody").innerHTML = errorState(e.message, "renderPortfolio");
+  }
+}
+
+async function loadPerformancePeriods(bots, totalValueNow) {
+  const wrap = document.getElementById("performancePeriodsWrap");
+  if (!wrap) return;
+  if (!bots.length) {
+    wrap.innerHTML = `<p class="muted">No bots to compute performance periods.</p>`;
+    return;
+  }
+
+  try {
+    const histories = await Promise.all(bots.map(b =>
+      api(`/api/bots/${b.id}/snapshots?days=8`).catch(() => [])
+    ));
+
+    let total7dAgo = 0;
+    let haveData = false;
+    bots.forEach((bot, i) => {
+      const h = histories[i];
+      if (h && h.length) {
+        total7dAgo += Number(h[0].total_value);
+        haveData = true;
+      } else {
+        total7dAgo += Number(bot.cash);
+      }
+    });
+
+    if (!haveData) {
+      wrap.innerHTML = `<p class="muted">Not enough snapshot history yet for a 7-day comparison.</p>`;
+      return;
+    }
+
+    const pnl7d = Number(totalValueNow) - total7dAgo;
+    const pnl7dPct = total7dAgo > 0 ? (pnl7d / total7dAgo) * 100 : 0;
+
+    wrap.innerHTML = `
+      <div class="metric-card"><div class="metric-label">7D P&amp;L</div><div class="metric-value ${pnlClass(pnl7d)}">${fmtMoney(pnl7d)}</div></div>
+      <div class="metric-card"><div class="metric-label">7D P&amp;L %</div><div class="metric-value ${pnlClass(pnl7dPct)}">${fmtPct(pnl7dPct)}</div></div>
+      <div class="metric-card"><div class="metric-label">7D Ago Value</div><div class="metric-value">${fmtMoney(total7dAgo)}</div></div>`;
+  } catch (e) {
+    wrap.innerHTML = `<p class="muted">Could not load performance periods.</p>`;
+  }
+}
+</script>
+<script>
+// PWA install prompt
+let deferredPrompt = null;
+const installBtn = document.getElementById("installPwaBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installBtn) installBtn.style.display = "";
+});
+
+installBtn?.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  if (result.outcome === "accepted") {
+    toast("App installed!", "success");
+  }
+  deferredPrompt = null;
+  installBtn.style.display = "none";
+});
+
+window.addEventListener("appinstalled", () => {
+  toast("Trading Bots installed successfully!", "success");
+  if (installBtn) installBtn.style.display = "none";
+});
+
+// iOS detection
+if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+  const hint = document.querySelector(".ios-hint");
+  if (hint) hint.style.display = "block";
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
+}
+</script>
+</body>
+</html>

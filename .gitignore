@@ -1,0 +1,36 @@
+# Secrets & credentials
+.env
+*.token
+*_token
+credentials.json
+*.key
+*.pem
+
+# Databases
+*.db
+*.sqlite
+data/*.db
+
+# Docker volumes / state
+data/.intraday_scheduler.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude / Hermes internal
+.claude/
+.hermes/
