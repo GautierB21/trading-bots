@@ -51,8 +51,14 @@ class PairsTradingStrategy(BaseStrategy):
             closes_a = df_a["Close"].values[-min_len:].astype(float)
             closes_b = df_b["Close"].values[-min_len:].astype(float)
 
-            log_a = np.log(np.abs(closes_a))
-            log_b = np.log(np.abs(closes_b))
+            if (closes_a <= 0).any() or (closes_b <= 0).any():
+                # Equity prices should never be <= 0 — a hit here means bad
+                # data, not something to silently paper over with abs().
+                print(f"[pairs_trading] {sym_a}/{sym_b}: non-positive price in window, skipping")
+                continue
+
+            log_a = np.log(closes_a)
+            log_b = np.log(closes_b)
 
             # OLS hedge ratio over full window
             try:

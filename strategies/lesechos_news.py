@@ -330,10 +330,7 @@ class LesEchosNewsStrategy(BaseStrategy):
                 # Apply commission
                 total = quantity * price
                 if total > 0:
-                    signals.append((
-                        ticker, "buy", quantity, price,
-                        f"Les Échos: score {score:+.2f} sur {article_count} articles"
-                    ))
+                    signals.append((ticker, "buy", quantity, price))
                     cash -= total
                     current_positions += 1
                     print(f"    ✅ ACHAT {ticker} — score {score:+.2f} ({info['company']})")
@@ -341,11 +338,7 @@ class LesEchosNewsStrategy(BaseStrategy):
             # SELL signal
             elif score <= neg_threshold and already_held and price and price > 0:
                 h = holdings[ticker]
-                signal = (
-                    ticker, "sell", h["quantity"], price,
-                    f"Les Échos: score négatif {score:+.2f}"
-                )
-                signals.append(signal)
+                signals.append((ticker, "sell", h["quantity"], price))
                 print(f"    ❌ VENTE {ticker} — score {score:+.2f} ({info['company']})")
 
         if not signals:

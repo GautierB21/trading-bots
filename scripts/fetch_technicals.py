@@ -31,10 +31,12 @@ except ImportError:
 
 
 def calculate_rsi(prices: pd.Series, period: int = 14) -> pd.Series:
-    """Calculate RSI manually if pandas-ta not available."""
+    """Wilder's RSI (matches strategies/rsi_mean_reversion.py and
+    intraday/indicators.py — a plain rolling-mean RSI gives different values
+    for the same name and silently disagrees with those)."""
     delta = prices.diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    gain = (delta.where(delta > 0, 0)).ewm(alpha=1 / period, adjust=False).mean()
+    loss = (-delta.where(delta < 0, 0)).ewm(alpha=1 / period, adjust=False).mean()
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 

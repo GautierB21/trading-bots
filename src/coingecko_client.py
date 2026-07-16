@@ -195,7 +195,6 @@ def get_coin_id_from_symbol(symbol):
         "CVX-USD": "convex-finance",
         "1INCH-USD": "1inch",
         "CAKE-USD": "pancakeswap-token",
-        "CAKE-USD": "pancakeswap-token",
         "KAVA-USD": "kava",
         "NEO-USD": "neo",
         "VET-USD": "vechain",
