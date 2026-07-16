@@ -81,8 +81,10 @@ class SentimentStrategy(BaseStrategy):
         max_negative_ratio = config.get("max_negative_ratio", 0.6)
         min_articles = config.get("min_articles", 1)
         position_size_pct = config.get("position_size_pct", 0.5)
+        max_positions = config.get("max_positions", 5)
         cash = bot["cash"]
         signals = []
+        current_positions = len(bot.get("holdings", []))
         use_alpha = alpha.is_available() and not bot.get("is_backtest")
 
         if not use_alpha:
@@ -106,7 +108,7 @@ class SentimentStrategy(BaseStrategy):
                     f"[sentiment] {symbol}: source=alpha_vantage articles={len(av_result['articles'])} "
                     f"avg_score={score:.2f}"
                 )
-                should_buy = qty_held == 0 and score > AV_BUY_THRESHOLD and cash > 0
+                should_buy = qty_held == 0 and score > AV_BUY_THRESHOLD and cash > 0 and current_positions < max_positions
                 should_sell = qty_held > 0 and score < AV_SELL_THRESHOLD
             else:
                 news = _get_news(symbol)
@@ -138,6 +140,7 @@ class SentimentStrategy(BaseStrategy):
                     and total_articles >= min_articles
                     and positive_ratio >= min_positive_ratio
                     and cash > 0
+                    and current_positions < max_positions
                 )
                 should_sell = qty_held > 0 and negative_ratio > max_negative_ratio
 
@@ -147,6 +150,7 @@ class SentimentStrategy(BaseStrategy):
                 if quantity > 0:
                     signals.append((symbol, "buy", quantity, price))
                     cash -= buy_amount
+                    current_positions += 1
 
             elif should_sell:
                 signals.append((symbol, "sell", qty_held, price))

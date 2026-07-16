@@ -74,9 +74,11 @@ class FundamentalStrategy(BaseStrategy):
         min_roe = config.get("min_roe", 10)
         max_debt_to_equity = config.get("max_debt_to_equity", 1.5)
         position_size_pct = config.get("position_size_pct", 0.7)
+        max_positions = config.get("max_positions", 5)
         atr_stop_mult = config.get("atr_stop_mult", 2.0)
         cash = bot["cash"]
         signals = []
+        current_positions = len(bot.get("holdings", []))
         use_fmp = fmp.is_available() and not bot.get("is_backtest")
         use_alpha = alpha.is_available() and not bot.get("is_backtest")
 
@@ -162,12 +164,16 @@ class FundamentalStrategy(BaseStrategy):
             meets_roe = roe is None or roe >= min_roe
             meets_debt = debt_to_equity is None or debt_to_equity <= max_debt_to_equity
 
-            if qty_held == 0 and meets_pe and meets_cap and meets_roe and meets_debt and cash > 0:
+            if (
+                qty_held == 0 and meets_pe and meets_cap and meets_roe and meets_debt
+                and cash > 0 and current_positions < max_positions
+            ):
                 buy_amount = cash * position_size_pct
                 quantity = buy_amount / price
                 if quantity > 0:
                     signals.append((symbol, "buy", quantity, price))
                     cash -= buy_amount
+                    current_positions += 1
 
             elif qty_held > 0 and pe_ratio is not None and pe_ratio > pe_ceiling * 2:
                 signals.append((symbol, "sell", qty_held, price))

@@ -215,10 +215,12 @@ class LesEchosNewsStrategy(BaseStrategy):
         pos_threshold = config.get("positive_threshold", 0.3)
         neg_threshold = config.get("negative_threshold", -0.2)
         pos_size = config.get("position_size_pct", 0.6)
+        max_positions = config.get("max_positions", 5)
         section = config.get("section", "/finance-marches")
 
         # Fetch holdings from bot
         holdings = {h["symbol"]: h for h in (bot.get("holdings") or [])}
+        current_positions = len(holdings)
 
         print(f"  [lesechos] 📰 Récupération des articles Échos...")
         articles = fetch_articles(section=section, limit=50)
@@ -322,7 +324,7 @@ class LesEchosNewsStrategy(BaseStrategy):
                 price = holdings[ticker]["avg_price"]
 
             # BUY signal
-            if score >= pos_threshold and not already_held and price and price > 0:
+            if score >= pos_threshold and not already_held and price and price > 0 and current_positions < max_positions:
                 budget = cash * pos_size
                 quantity = budget / price
                 # Apply commission
@@ -333,6 +335,7 @@ class LesEchosNewsStrategy(BaseStrategy):
                         f"Les Échos: score {score:+.2f} sur {article_count} articles"
                     ))
                     cash -= total
+                    current_positions += 1
                     print(f"    ✅ ACHAT {ticker} — score {score:+.2f} ({info['company']})")
 
             # SELL signal

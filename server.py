@@ -243,8 +243,16 @@ STRATEGY_META = {
 }
 
 
+# Same-origin dashboard doesn't need CORS at all; this only exists for the
+# rare case of hitting the API from another allowed origin. Defaults to the
+# deployed host — override with ALLOWED_ORIGIN if serving the dashboard
+# elsewhere. Was "*", which let any site's JS trigger state-changing POSTs
+# (create/run/reset bots) via a visitor's browser.
+ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "https://trading.bookpass.fr")
+
+
 def _cors(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Origin"] = ALLOWED_ORIGIN
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,DELETE,OPTIONS"
     return response

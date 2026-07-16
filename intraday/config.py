@@ -14,7 +14,7 @@ BOTS = [
         "timeframe": 1,
         "symbols": ["XBT/USD", "ETH/USD", "SOL/USD"],
         "data_source": "kraken",
-        "description": "Scalping 1min sur BTC, ETH, SOL. Suit les croisements EMA5/EMA12 (moyennes mobiles exponentielles rapides). Achète quand la moyenne 5min dépasse la 12min à la hausse (golden cross), vend quand elle passe en dessous (death cross). Risque: 2% par trade, stop-loss et take-profit gérés."
+        "description": "Scalping 1min sur BTC, ETH, SOL. Suit les croisements EMA5/EMA12 (moyennes mobiles exponentielles rapides). Achète quand la moyenne 5min dépasse la 12min à la hausse (golden cross), vend quand elle passe en dessous (death cross). Stop-loss -0.4%, take-profit +0.8%, max 5 positions, 10% du cash par position."
     },
     {
         "name": "crypto_mean_rev",
@@ -27,7 +27,7 @@ BOTS = [
                     "AAVE/USD", "UNI/USD", "DOGE/USD", "SHIB/USD", "BCH/USD",
                     "LTC/USD", "TRX/USD", "ETC/USD", "XLM/USD", "ALGO/USD"],
         "data_source": "kraken",
-        "description": "Mean reversion 5min sur 20 altcoins. Surveille le RSI (Relative Strength Index) sur 14 périodes de 5min. Achète quand RSI < 25 (survendu - rebound probable), vend quand RSI > 60 (retour à la normale. Max 5 positions simultanées par bot (POSITION_PCT = 20% du cash par position)."
+        "description": "Mean reversion 5min sur 20 altcoins. Surveille le RSI (Relative Strength Index) sur 14 périodes de 5min. Achète quand RSI < 25 (survendu - rebound probable), vend quand RSI > 70 (retour à la normale). Max 8 positions simultanées par bot (POSITION_PCT = 10% du cash par position)."
     },
     {
         "name": "crypto_momentum",
@@ -111,7 +111,7 @@ BOTS = [
                     "ZEC/USD"
         ],
         "data_source": "kraken",
-        "description": "Momentum 15min sur les cryptos CoinGecko top 100 (>$1M market cap). Calcule la performance des 15 dernières minutes. Achète les 2 meilleures performances, vend les positions sorties du top. 50% du cash par position."
+        "description": "Momentum 15min sur les cryptos CoinGecko top 100 (>$1M market cap). Calcule la performance des 15 dernières minutes. Achète les 5 meilleures performances, vend les positions sorties du top. 12% du cash par position."
     },
     {
         "name": "crypto_dip_buyer",
@@ -195,7 +195,7 @@ BOTS = [
                     "ZEC/USD"
         ],
         "data_source": "kraken",
-        "description": "Contrarian dip-buying 5min sur top 100 CoinGecko (>$1M market cap). Achète quand le prix baisse de ≥3% sur 20 bougies ET qu'un rebond se confirme (2/3 dernières bougies vertes, clôture > ouverture précédente). Take-profit +2%, stop-loss -2%, timeout 10 bougies. Max 3 positions, 30% du cash par position."
+        "description": "Contrarian dip-buying 5min sur top 100 CoinGecko (>$1M market cap). Achète quand le prix baisse de ≥3% sur 20 bougies ET qu'un rebond se confirme (2/3 dernières bougies vertes, clôture > ouverture précédente). Take-profit +2%, stop-loss -2%, timeout 10 bougies. Max 5 positions, 10% du cash par position."
     },
     {
         "name": "crypto_social_momentum",
@@ -279,7 +279,7 @@ BOTS = [
                     "ZEC/USD"
         ],
         "data_source": "kraken",
-        "description": "Social momentum 30min via CoinGecko trending. Détecte les cryptos qui gagnent en popularité sur les réseaux sociaux (proxy X.com). Achète quand un token entre dans le top 5 trending, vend quand il sort du top 20. Max 2 positions, 40% du cash par position."
+        "description": "Social momentum 30min via CoinGecko trending. Détecte les cryptos qui gagnent en popularité sur les réseaux sociaux (proxy X.com). Achète quand un token entre dans le top 5 trending, vend quand il sort du top 20. Max 5 positions, 12% du cash par position."
     },
 ]
 

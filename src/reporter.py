@@ -172,12 +172,13 @@ def generate_daily_summary():
         reverse=True,
     )
 
+    pnl_pct = (total_pnl / total_capital * 100) if total_capital else 0.0
     lines = [
         f"# Daily Trading Summary — {_utcnow()}",
         "",
         f"**Total Capital**: ${total_capital:,.2f}",
         f"**Total Portfolio Value**: ${total_value:,.2f}",
-        f"**Total P&L**: ${total_pnl:+,.2f} ({total_pnl / total_capital * 100:+.2f}%)",
+        f"**Total P&L**: ${total_pnl:+,.2f} ({pnl_pct:+.2f}%)",
         "",
         "## Traded Today",
     ]
