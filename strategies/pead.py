@@ -1,6 +1,6 @@
 import datetime
 from .base import BaseStrategy
-from src import data_fetcher_fmp as fmp
+from src import earnings
 
 
 class PEADStrategy(BaseStrategy):
@@ -10,9 +10,11 @@ class PEADStrategy(BaseStrategy):
     drifting in the same direction for weeks after the report.
 
     Event-driven, not technical or price-pattern based — genuinely different
-    signal source from every other strategy here. Needs FMP_API_KEY (uses
-    /earnings-surprises, cached 1 day/symbol — keep the symbol universe
-    small, FMP's free tier is 250 calls/day shared with fundamental.py)."""
+    signal source from every other strategy here. Data via src/earnings.py:
+    yfinance first (free, no key, already used everywhere in this project),
+    Finnhub as a fallback if FINNHUB_API_KEY is set. Not every symbol has
+    analyst-estimate data on yfinance (LVMH doesn't, for one) — those just
+    get skipped this run rather than crash."""
 
     def generate_signals(self, bot, market_data):
         config = bot["config"]
@@ -28,11 +30,6 @@ class PEADStrategy(BaseStrategy):
         cash = bot["cash"]
         signals = []
         current_positions = len(bot.get("holdings", []))
-
-        if not fmp.is_available():
-            print("[pead] no FMP_API_KEY, skipping")
-            return []
-
         today = datetime.date.today()
 
         for symbol in symbols:
@@ -54,7 +51,7 @@ class PEADStrategy(BaseStrategy):
             if current_positions >= max_positions or cash <= 0:
                 continue
 
-            surprises = fmp.fetch_earnings_surprises(symbol, limit=1)
+            surprises = earnings.fetch_earnings_surprises(symbol, limit=1)
             if not surprises:
                 continue
             latest = surprises[0]

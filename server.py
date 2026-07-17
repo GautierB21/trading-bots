@@ -297,7 +297,7 @@ STRATEGY_META = {
     },
     "pead": {
         "display_name": "PEAD (Post-Earnings Drift)",
-        "description": "Dérive post-annonce de résultats : le marché sous-réagit historiquement aux surprises de bénéfices, le prix continue de dériver dans le même sens pendant plusieurs semaines après l'annonce. Achète une action qui vient de battre ses estimations de résultats (>5%) dans les 3 jours suivant l'annonce, garde 30 jours. Nécessite FMP_API_KEY. Signal 'événementiel', totalement différent des signaux techniques/sentiment des autres bots.",
+        "description": "Dérive post-annonce de résultats : le marché sous-réagit historiquement aux surprises de bénéfices, le prix continue de dériver dans le même sens pendant plusieurs semaines après l'annonce. Achète une action qui vient de battre ses estimations de résultats (>5%) dans les 3 jours suivant l'annonce, garde 30 jours. Données via yfinance (gratuit), Finnhub en secours si FINNHUB_API_KEY configuré. Signal 'événementiel', totalement différent des signaux techniques/sentiment des autres bots.",
     },
     "low_volatility": {
         "display_name": "Low Volatility",
