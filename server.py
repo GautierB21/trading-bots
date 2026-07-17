@@ -238,7 +238,15 @@ STRATEGY_TEMPLATES = {
     "sector_rotation": {
         "lookback": 60,
         "top_n": 3,
+        "rate_tilt_pct": 0.03,
         "symbols": ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLB", "XLU", "XLRE", "XLC"],
+    },
+    "post_fomc_drift": {
+        "symbols": ["SPY", "QQQ"],
+        "reaction_window_days": 1,
+        "min_reaction_pct": 1.0,
+        "hold_days": 5,
+        "max_positions": 2,
     },
 }
 
@@ -301,7 +309,11 @@ STRATEGY_META = {
     },
     "sector_rotation": {
         "display_name": "Sector Rotation",
-        "description": "Momentum sectoriel via les ETF SPDR US (Tech, Finance, Énergie, Santé...). Classe les 11 secteurs par performance relative sur 60 jours, surpondère les 3 plus forts. Même mécanique que Momentum mais l'axe du pari est différent : quel secteur plutôt que quelle action — vraie source de diversification, pas juste une variante stock-picking.",
+        "description": "Momentum sectoriel via les ETF SPDR US (Tech, Finance, Énergie, Santé...). Classe les 11 secteurs par performance relative sur 60 jours, surpondère les 3 plus forts. Tilté par la tendance des taux 10 ans (^TNX) : taux qui montent → penche vers les défensifs (XLP/XLU/XLV), taux qui baissent → penche vers la croissance (XLK/XLY/XLC). Même mécanique que Momentum mais l'axe du pari est différent : quel secteur plutôt que quelle action.",
+    },
+    "post_fomc_drift": {
+        "display_name": "Post-FOMC/BCE Drift",
+        "description": "Dérive post-annonce banque centrale : le marché continue historiquement de dériver dans le sens de sa réaction initiale à une décision Fed/BCE pendant plusieurs jours. Mesure la réaction du jour sur SPY/QQQ après une date FOMC/BCE (src/macro_calendar.py) ; si réaction positive >1%, suit la tendance 5 jours. Moteur long-only : ne peut réagir qu'aux réactions positives, jamais shorter une réaction négative.",
     },
 }
 

@@ -4,10 +4,13 @@ from .data_fetcher import fetch_historical_data, fetch_current_prices
 from .portfolio import execute_order, take_snapshot, get_portfolio_summary
 from .risk_metrics import calc_current_drawdown
 from .macro_calendar import is_macro_event_day
+from .rates import is_yield_curve_inverted
 from strategies import get_strategy
 
 BOT_DRAWDOWN_STOP_PCT = -15.0       # pause a single bot once it's down this much from its own peak
 PORTFOLIO_CIRCUIT_BREAKER_PCT = -10.0  # skip the whole run once all bots combined are down this much over 7 days
+PORTFOLIO_CIRCUIT_BREAKER_PCT_INVERTED = -5.0  # tighter trigger when the yield curve is inverted —
+                                                 # historically a higher-risk macro backdrop (see src/rates.py)
 
 
 DEFAULT_BOTS = [
@@ -213,11 +216,14 @@ def run_all_bots():
     # distinguish "close a losing position" from "open a new one" per
     # strategy, which would need touching every strategy's signal shape.
     daily_totals = db.get_portfolio_daily_totals(days=7)
+    curve_inverted = is_yield_curve_inverted()
+    threshold = PORTFOLIO_CIRCUIT_BREAKER_PCT_INVERTED if curve_inverted else PORTFOLIO_CIRCUIT_BREAKER_PCT
     if len(daily_totals) >= 2 and daily_totals[0]:
         portfolio_pnl_pct = (daily_totals[-1] - daily_totals[0]) / daily_totals[0] * 100
-        if portfolio_pnl_pct <= PORTFOLIO_CIRCUIT_BREAKER_PCT:
+        if portfolio_pnl_pct <= threshold:
+            note = " (tightened: inverted yield curve)" if curve_inverted else ""
             print(f"[bot_manager] CIRCUIT BREAKER: portfolio down {portfolio_pnl_pct:.2f}% "
-                  f"over 7 days (threshold {PORTFOLIO_CIRCUIT_BREAKER_PCT}%) — skipping this run entirely.")
+                  f"over 7 days (threshold {threshold}%{note}) — skipping this run entirely.")
             return {"circuit_breaker": True, "portfolio_pnl_pct_7d": portfolio_pnl_pct}
 
     bots = db.get_all_bots(active_only=True)

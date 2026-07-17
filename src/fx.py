@@ -30,6 +30,11 @@ _fx_rate_cache = {}  # currency -> (fetched_at, rate_to_eur)
 
 def get_symbol_currency(symbol):
     """Native listing currency for a symbol, e.g. 'EUR', 'USD', 'JPY', 'GBp'."""
+    if symbol.startswith("^"):
+        return TARGET_CCY  # Yahoo index/yield tickers (^TNX, ^IRX, ^GSPC...) are
+                            # points or percentages, not currency-denominated
+                            # prices — never convert, or a 4.5% yield turns into
+                            # a nonsense "3.9%" after an FX multiply.
     if symbol.endswith("-USD"):
         return "USD"  # CoinGecko crypto prices are always USD (vs_currency="usd")
     for suffix, ccy in _SUFFIX_CCY.items():

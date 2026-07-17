@@ -13,6 +13,7 @@ from .pead import PEADStrategy
 from .low_volatility import LowVolatilityStrategy
 from .reversal_1day import Reversal1DayStrategy
 from .sector_rotation import SectorRotationStrategy
+from .post_fomc_drift import PostFOMCDriftStrategy
 
 STRATEGY_MAP = {
     "sma_crossover": SMACrossoverStrategy,
@@ -30,6 +31,7 @@ STRATEGY_MAP = {
     "low_volatility": LowVolatilityStrategy,
     "reversal_1day": Reversal1DayStrategy,
     "sector_rotation": SectorRotationStrategy,
+    "post_fomc_drift": PostFOMCDriftStrategy,
 }
 
 
