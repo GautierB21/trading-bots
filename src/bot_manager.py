@@ -9,7 +9,7 @@ DEFAULT_BOTS = [
     {
         "name": "sma_crossover",
         "strategy": "sma_crossover",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "fast_period": 20,
             "slow_period": 50,
@@ -19,7 +19,7 @@ DEFAULT_BOTS = [
     {
         "name": "rsi_reversion",
         "strategy": "rsi_mean_reversion",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "period": 14,
             "oversold": 30,
@@ -30,7 +30,7 @@ DEFAULT_BOTS = [
     {
         "name": "momentum",
         "strategy": "momentum",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "lookback": 20,
             "top_n": 3,
@@ -44,7 +44,7 @@ DEFAULT_BOTS = [
     {
         "name": "bollinger",
         "strategy": "bollinger_bands",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "period": 20,
             "std_dev": 2,
@@ -54,7 +54,7 @@ DEFAULT_BOTS = [
     {
         "name": "dca",
         "strategy": "dca",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "amount_per_period": 100,
             "symbols": ["SPY", "QQQ"],
@@ -64,7 +64,7 @@ DEFAULT_BOTS = [
     {
         "name": "pairs",
         "strategy": "pairs_trading",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "pairs": [
                 {"symbol_a": "XOM", "symbol_b": "CVX"},
@@ -78,7 +78,7 @@ DEFAULT_BOTS = [
     {
         "name": "fundamental",
         "strategy": "fundamental",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "JPM", "V", "JNJ"],
             "min_market_cap": 10000000000,
@@ -92,7 +92,7 @@ DEFAULT_BOTS = [
     {
         "name": "sentiment",
         "strategy": "sentiment",
-        "capital": 10000.0,
+        "capital": 500.0,
         "config": {
             "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA"],
             "min_positive_ratio": 0.6,

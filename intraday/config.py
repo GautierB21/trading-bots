@@ -1,5 +1,5 @@
 """Intraday trading configuration."""
-TOTAL_BUDGET = 2000  # €
+TOTAL_BUDGET = 2500  # € (5 bots x 500)
 
 COMMISSION_RATES = {
     "kraken": 0.0026,   # 0.26% taker fee (Kraken réel)
@@ -9,7 +9,7 @@ BOTS = [
     {
         "name": "crypto_scalper",
         "strategy": "crypto_scalper",
-        "budget": 300,
+        "budget": 500,
         "display_name": "Crypto Scalper",
         "timeframe": 1,
         "symbols": ["XBT/USD", "ETH/USD", "SOL/USD"],
@@ -19,7 +19,7 @@ BOTS = [
     {
         "name": "crypto_mean_rev",
         "strategy": "crypto_mean_rev",
-        "budget": 400,
+        "budget": 500,
         "display_name": "Crypto Mean Reversion",
         "timeframe": 5,
         "symbols": ["SOL/USD", "XRP/USD", "ADA/USD", "AVAX/USD", "DOT/USD",
@@ -32,7 +32,7 @@ BOTS = [
     {
         "name": "crypto_momentum",
         "strategy": "crypto_momentum",
-        "budget": 300,
+        "budget": 500,
         "display_name": "Crypto Momentum",
         "timeframe": 15,
         "symbols": [
@@ -116,7 +116,7 @@ BOTS = [
     {
         "name": "crypto_dip_buyer",
         "strategy": "dip_buyer",
-        "budget": 300,
+        "budget": 500,
         "display_name": "Crypto Dip Buyer",
         "timeframe": 5,
         "symbols": [
@@ -200,7 +200,7 @@ BOTS = [
     {
         "name": "crypto_social_momentum",
         "strategy": "social_momentum",
-        "budget": 300,
+        "budget": 500,
         "display_name": "Crypto Social Momentum",
         "timeframe": 30,
         "symbols": [

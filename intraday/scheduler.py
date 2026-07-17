@@ -9,6 +9,7 @@ from .kraken_ws import KrakenFeed
 from .alpaca_ws import AlpacaFeed, is_available as alpaca_is_available
 from .strategies import STRATEGY_CLASSES
 from src.intraday_volume import get_24h_volume
+from src import fx
 
 CYCLE_SECONDS = 60
 MIN_BUY_VOLUME_USD = 50_000
@@ -126,6 +127,11 @@ class IntradayScheduler:
         return set(self.kraken.symbols) | set(self.alpaca.symbols)
 
     def _finalize_1m_candles(self):
+        # Kraken/Alpaca ticks arrive in USD; every bot's budget and every
+        # dashboard number here is EUR (see src/fx.py) — convert at the one
+        # chokepoint where raw ticks become candles, so nothing downstream
+        # (strategies, portfolio_value, snapshots) needs to know about it.
+        usd_rate = fx.get_fx_rate("USD")
         minute_bucket = datetime.now(timezone.utc).replace(second=0, microsecond=0)
         open_time = minute_bucket.strftime("%Y-%m-%d %H:%M:%S")
         for feed in (self.kraken, self.alpaca):
@@ -133,7 +139,7 @@ class IntradayScheduler:
                 ticks = feed.drain_ticks(symbol)
                 if not ticks:
                     continue
-                prices = [t[1] for t in ticks]
+                prices = [t[1] * usd_rate for t in ticks]
                 volume = sum(t[2] for t in ticks)
                 db.insert_candle(symbol, 60, open_time, prices[0], max(prices), min(prices), prices[-1], volume)
 

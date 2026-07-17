@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
+from src import fx
+
 try:
     from src.coingecko_client import (
         get_top_coins, get_coin_id_from_symbol, get_market_chart,
@@ -231,6 +233,14 @@ def fetch_historical_data(symbols, period="1y", interval="1d", allow_stale=False
         for sym, df in cg_data.items():
             if df is not None and not df.empty:
                 result[sym] = df
+
+    # Normalize every symbol's OHLC to EUR — cache above stores native-
+    # currency data untouched, conversion is applied fresh on every call so
+    # cached JPY/GBp/HKD/USD prices never leak through unconverted. See
+    # src/fx.py for why this matters (JPY prices were being treated as EUR
+    # 1:1, overstating position value ~150x).
+    for sym in list(result.keys()):
+        result[sym] = fx.convert_df_to_eur(result[sym], sym)
 
     return result
 
