@@ -10,6 +10,7 @@ from .alpaca_ws import AlpacaFeed, is_available as alpaca_is_available
 from .strategies import STRATEGY_CLASSES
 from src.intraday_volume import get_24h_volume
 from src import fx
+from src.macro_calendar import is_macro_event_day
 
 CYCLE_SECONDS = 60
 MIN_BUY_VOLUME_USD = 50_000
@@ -173,6 +174,14 @@ class IntradayScheduler:
             if key not in seen_signals:
                 seen_signals.add(key)
                 unique_signals.append(s)
+
+        # Same macro-event gate as the daily engine (bot_manager.run_bot) —
+        # block new entries on an FOMC/ECB decision day, let exits/stops through.
+        if is_macro_event_day():
+            blocked = sum(1 for s in unique_signals if s[1] == "buy")
+            unique_signals = [s for s in unique_signals if s[1] != "buy"]
+            if blocked:
+                print(f"  [{strat.name}] macro event today (FOMC/ECB) — blocked {blocked} new buy signal(s)")
 
         for symbol, side, qty, price, reason in unique_signals:
             if side == "buy":

@@ -3,6 +3,7 @@ from . import db
 from .data_fetcher import fetch_historical_data, fetch_current_prices
 from .portfolio import execute_order, take_snapshot, get_portfolio_summary
 from .risk_metrics import calc_current_drawdown
+from .macro_calendar import is_macro_event_day
 from strategies import get_strategy
 
 BOT_DRAWDOWN_STOP_PCT = -15.0       # pause a single bot once it's down this much from its own peak
@@ -160,6 +161,16 @@ def run_bot(bot_id):
 
     strategy = get_strategy(bot["strategy"])
     signals = strategy.generate_signals(bot, market_data)
+
+    # Skip new entries on a major central bank decision day (FOMC/ECB) — every
+    # asset can gap on the announcement for reasons no per-symbol signal saw
+    # coming. Exits/stops still fire: only "buy" signals get filtered.
+    on_macro_event = is_macro_event_day()
+    if on_macro_event:
+        blocked = sum(1 for s in signals if s[1] == "buy")
+        signals = [s for s in signals if s[1] != "buy"]
+        if blocked:
+            print(f"  [{bot['name']}] macro event today (FOMC/ECB) — blocked {blocked} new buy signal(s)")
 
     executed = 0
     for signal in signals:

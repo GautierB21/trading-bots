@@ -21,6 +21,10 @@ MAX_WAIT = 10
 
 _LAST_CALL_TIME = 0
 
+_EARNINGS_CACHE_TTL = 86400  # 1 day — earnings surprises only change quarterly,
+                              # no need to re-spend quota checking more often
+_earnings_cache = {}  # symbol -> (fetched_at, result)
+
 
 def is_available():
     return bool(FMP_API_KEY)
@@ -90,3 +94,30 @@ def fetch_fundamentals(symbol):
         "debt_to_equity": debt_to_equity,
         "sector": sector,
     }
+
+
+def fetch_earnings_surprises(symbol, limit=1):
+    """Most recent earnings surprise(s), most recent first: list of
+    {date, actual, estimate, surprise_pct}, or None if unavailable. Cached
+    1 day per symbol — this is what strategies/pead.py trades on."""
+    cached = _earnings_cache.get(symbol)
+    if cached and time.time() - cached[0] < _EARNINGS_CACHE_TTL:
+        return cached[1]
+
+    data = _get(f"earnings-surprises/{symbol}")
+    result = None
+    if data and isinstance(data, list):
+        rows = []
+        for r in data:
+            actual = r.get("actualEarningResult")
+            estimate = r.get("estimatedEarning")
+            date = r.get("date")
+            if actual is None or estimate is None or not date:
+                continue
+            surprise_pct = (actual - estimate) / abs(estimate) * 100 if estimate else None
+            rows.append({"date": date, "actual": actual, "estimate": estimate, "surprise_pct": surprise_pct})
+        rows.sort(key=lambda r: r["date"], reverse=True)
+        result = rows[:limit] if rows else None
+
+    _earnings_cache[symbol] = (time.time(), result)
+    return result

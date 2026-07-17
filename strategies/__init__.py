@@ -8,6 +8,11 @@ from .fundamental import FundamentalStrategy
 from .sentiment import SentimentStrategy
 from .sentiment_av import SentimentAVStrategy
 from .lesechos_news import LesEchosNewsStrategy
+from .donchian_breakout import DonchianBreakoutStrategy
+from .pead import PEADStrategy
+from .low_volatility import LowVolatilityStrategy
+from .reversal_1day import Reversal1DayStrategy
+from .sector_rotation import SectorRotationStrategy
 
 STRATEGY_MAP = {
     "sma_crossover": SMACrossoverStrategy,
@@ -20,6 +25,11 @@ STRATEGY_MAP = {
     "sentiment": SentimentStrategy,
     "sentiment_av": SentimentAVStrategy,
     "lesechos_news": LesEchosNewsStrategy,
+    "donchian_breakout": DonchianBreakoutStrategy,
+    "pead": PEADStrategy,
+    "low_volatility": LowVolatilityStrategy,
+    "reversal_1day": Reversal1DayStrategy,
+    "sector_rotation": SectorRotationStrategy,
 }
 
 

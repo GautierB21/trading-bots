@@ -197,6 +197,49 @@ STRATEGY_TEMPLATES = {
         "min_articles": 2,
         "position_size_pct": 0.5,
     },
+    "donchian_breakout": {
+        "entry_period": 55,
+        "exit_period": 20,
+        "max_positions": 5,
+        "symbols": [
+            "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "JPM", "V", "JNJ",
+            "WMT", "PG", "MA", "UNH", "HD", "DIS", "NFLX", "ADBE", "CRM", "INTC",
+        ],
+    },
+    "pead": {
+        "symbols": [
+            "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
+            "JPM", "V", "JNJ", "WMT", "HD", "PG", "MA", "DIS",
+        ],
+        "min_surprise_pct": 5.0,
+        "max_days_since_earnings": 3,
+        "hold_days": 30,
+        "max_positions": 5,
+    },
+    "low_volatility": {
+        "lookback": 60,
+        "top_n": 5,
+        "rebalance_days": 20,
+        "symbols": [
+            "AAPL", "MSFT", "GOOGL", "JNJ", "PG", "KO", "WMT", "PEP",
+            "V", "MA", "HD", "MCD", "COST", "UNH", "ABBV",
+        ],
+    },
+    "reversal_1day": {
+        "max_positions": 5,
+        "hold_days": 3,
+        "min_decline_pct": 3.0,
+        "symbols": [
+            "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
+            "JPM", "V", "JNJ", "WMT", "HD", "PG", "MA", "DIS",
+            "BAC", "XOM", "CVX", "KO", "PEP",
+        ],
+    },
+    "sector_rotation": {
+        "lookback": 60,
+        "top_n": 3,
+        "symbols": ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLB", "XLU", "XLRE", "XLC"],
+    },
 }
 
 STRATEGY_META = {
@@ -239,6 +282,26 @@ STRATEGY_META = {
     "lesechos_news": {
         "display_name": "Les Echos News",
         "description": "Analyse les articles des Échos (paywall) pour trader les actions du CAC 40. Compte les mots-clés positifs/négatifs en français, génère un score de sentiment par entreprise. Achète les sociétés avec des articles majoritairement positifs, vend les négatives. Sources : Les Echos, données en temps réel.",
+    },
+    "donchian_breakout": {
+        "display_name": "Donchian Breakout",
+        "description": "Canal de Donchian (style 'Turtle Traders'). Achète quand le prix dépasse son plus haut sur 55 jours (cassure haussière confirmée). Vend quand il repasse sous son plus bas sur 20 jours. Contrairement au SMA Crossover qui suit une tendance déjà établie, ici on entre au moment même de la cassure — signal différent malgré l'air de famille.",
+    },
+    "pead": {
+        "display_name": "PEAD (Post-Earnings Drift)",
+        "description": "Dérive post-annonce de résultats : le marché sous-réagit historiquement aux surprises de bénéfices, le prix continue de dériver dans le même sens pendant plusieurs semaines après l'annonce. Achète une action qui vient de battre ses estimations de résultats (>5%) dans les 3 jours suivant l'annonce, garde 30 jours. Nécessite FMP_API_KEY. Signal 'événementiel', totalement différent des signaux techniques/sentiment des autres bots.",
+    },
+    "low_volatility": {
+        "display_name": "Low Volatility",
+        "description": "Anomalie de faible volatilité (Ang et al.) : les actions les moins volatiles battent historiquement le marché ajusté au risque. Achète le quintile le moins volatil de l'univers (volatilité réalisée sur 60 jours), rebalance toutes les 20 séances. Pari inverse du Momentum, qui lui chasse les gagnants les plus volatils.",
+    },
+    "reversal_1day": {
+        "display_name": "Reversal 1-Day",
+        "description": "Retournement à très court terme (overreaction). Classe tout l'univers par performance de la veille, achète les plus fortes baisses (≥3%), sort après 3 jours ou stop ATR. Différent du RSI Mean Reversion (indicateur multi-jours sur une seule action) : ici c'est un signal cross-sectionnel sur 1 jour, horizon de détention très court.",
+    },
+    "sector_rotation": {
+        "display_name": "Sector Rotation",
+        "description": "Momentum sectoriel via les ETF SPDR US (Tech, Finance, Énergie, Santé...). Classe les 11 secteurs par performance relative sur 60 jours, surpondère les 3 plus forts. Même mécanique que Momentum mais l'axe du pari est différent : quel secteur plutôt que quelle action — vraie source de diversification, pas juste une variante stock-picking.",
     },
 }
 
