@@ -4,6 +4,11 @@ from ..indicators import rsi
 OVERSOLD = 25
 OVERBOUGHT = 70
 PROFIT_TARGET = 0.008   # +0.8%
+STOP_LOSS = 0.015       # -1.5% hard floor — a mean-reversion entry with no
+                         # stop had zero floor: RSI staying oversold through a
+                         # crash (not just a normal dip) meant holding through
+                         # an unbounded drawdown with only "wait for RSI to
+                         # recover" as an exit.
 POSITION_PCT = 0.10
 MAX_POSITIONS = 8
 RSI_PERIOD = 14
@@ -33,6 +38,9 @@ class CryptoMeanRev(IntradayStrategy):
                 if r > OVERBOUGHT or change >= PROFIT_TARGET:
                     signals.append((symbol, "sell", pos["quantity"], price,
                                      f"RSI {r:.1f} overbought or +{change * 100:.2f}%"))
+                elif change <= -STOP_LOSS:
+                    signals.append((symbol, "sell", pos["quantity"], price,
+                                     f"stop loss {change * 100:.2f}%"))
                 continue
 
             if r < OVERSOLD and open_positions < MAX_POSITIONS:

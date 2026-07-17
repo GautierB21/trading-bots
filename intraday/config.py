@@ -14,7 +14,7 @@ BOTS = [
         "timeframe": 1,
         "symbols": ["XBT/USD", "ETH/USD", "SOL/USD"],
         "data_source": "kraken",
-        "description": "Scalping 1min sur BTC, ETH, SOL. Suit les croisements EMA5/EMA12 (moyennes mobiles exponentielles rapides). Achète quand la moyenne 5min dépasse la 12min à la hausse (golden cross), vend quand elle passe en dessous (death cross). Stop-loss -0.4%, take-profit +0.8%, max 5 positions, 10% du cash par position."
+        "description": "Scalping 1min sur BTC, ETH, SOL. Suit les croisements EMA5/EMA12 (moyennes mobiles exponentielles rapides). Achète quand la moyenne 5min dépasse la 12min à la hausse (golden cross), vend quand elle passe en dessous (death cross). Stop-loss -0.8%, take-profit +2.0%, max 5 positions, 10% du cash par position."
     },
     {
         "name": "crypto_mean_rev",

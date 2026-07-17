@@ -31,6 +31,7 @@ class PairsTradingStrategy(BaseStrategy):
         exit_z = config.get("exit_zscore", 0.5)
         lookback = config.get("lookback", 20)
         max_z_for_conviction = config.get("max_z_for_conviction", 4.0)
+        atr_stop_mult = config.get("atr_stop_mult", 2.0)
         cash = bot["cash"]
         signals = []
         n_pairs = max(len(pairs), 1)
@@ -82,6 +83,17 @@ class PairsTradingStrategy(BaseStrategy):
             price_b = float(closes_b[-1])
             qty_a = self.get_holding_quantity(bot, sym_a)
             qty_b = self.get_holding_quantity(bot, sym_b)
+
+            # ATR hard stop, independent of the spread reverting — a pair
+            # whose cointegration has broken can drift further and further
+            # from the mean instead of reverting, and |z| < exit_zscore then
+            # never fires. Only one leg is ever held at a time (long-only).
+            if qty_a > 0 and self.atr_stop_triggered(bot, sym_a, market_data, multiplier=atr_stop_mult):
+                signals.append((sym_a, "sell", qty_a, price_a))
+                continue
+            if qty_b > 0 and self.atr_stop_triggered(bot, sym_b, market_data, multiplier=atr_stop_mult):
+                signals.append((sym_b, "sell", qty_b, price_b))
+                continue
 
             # hedge ratio far from 1 => legs aren't comparably volatile =>
             # a long-only proxy position is weaker, size it down (never up)

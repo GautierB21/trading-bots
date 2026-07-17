@@ -82,6 +82,7 @@ class SentimentStrategy(BaseStrategy):
         min_articles = config.get("min_articles", 1)
         position_size_pct = config.get("position_size_pct", 0.5)
         max_positions = config.get("max_positions", 5)
+        atr_stop_mult = config.get("atr_stop_mult", 2.0)
         cash = bot["cash"]
         signals = []
         current_positions = len(bot.get("holdings", []))
@@ -98,6 +99,11 @@ class SentimentStrategy(BaseStrategy):
             price = float(df["Close"].dropna().values[-1])
 
             qty_held = self.get_holding_quantity(bot, symbol)
+
+            if qty_held > 0 and self.atr_stop_triggered(bot, symbol, market_data, multiplier=atr_stop_mult):
+                signals.append((symbol, "sell", qty_held, price))
+                continue
+
             should_buy = should_sell = False
 
             av_result = alpha.fetch_news_sentiment(symbol) if use_alpha else None

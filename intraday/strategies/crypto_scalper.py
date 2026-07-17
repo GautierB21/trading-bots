@@ -1,8 +1,15 @@
 from .base import IntradayStrategy
 from ..indicators import ema
 
-PROFIT_TARGET = 0.008   # +0.8% (net +0.28% after 0.52% round-trip fees)
-STOP_LOSS = 0.004        # -0.4% (risk/reward 2:1)
+# The "2:1" comment this used to carry (0.8%/0.4%) only compared raw price
+# moves — but the 0.52% round-trip Kraken fee (0.26% x2) hits both sides,
+# not just the win: net win was +0.8-0.52=+0.28%, net loss was
+# -0.4-0.52=-0.92%. Real R:R was ~0.30 inverted, needing a ~77% win rate
+# just to break even, which an EMA5/12 crossover has no business hitting.
+# Widened so the fee-adjusted math is sane: net win +2.0-0.52=+1.48%, net
+# loss -0.8-0.52=-1.32%, R:R ~1.12, breakeven ~47%.
+PROFIT_TARGET = 0.020    # +2.0% (net +1.48% after 0.52% round-trip fees)
+STOP_LOSS = 0.008        # -0.8% (net -1.32% after fees)
 POSITION_PCT = 0.10
 MAX_POSITIONS = 5
 MIN_CANDLES = 13         # ema12 needs a prior bar too, to detect the crossover

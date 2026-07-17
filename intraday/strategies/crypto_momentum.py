@@ -2,6 +2,11 @@ from .base import IntradayStrategy
 
 TOP_N = 5
 POSITION_PCT = 0.12
+STOP_LOSS = 0.03  # -3% hard floor — ranking-only exit means a symbol that
+                   # crashes but drags the whole top-N down with it (a
+                   # correlated market-wide selloff) never drops out of the
+                   # top-N and never gets sold; this is the only price-based
+                   # exit this strategy has.
 
 
 class CryptoMomentum(IntradayStrategy):
@@ -29,8 +34,21 @@ class CryptoMomentum(IntradayStrategy):
         ranked = sorted(returns.items(), key=lambda kv: kv[1], reverse=True)
         top = {sym for sym, _ in ranked[:TOP_N]}
 
+        # Stop loss, independent of ranking.
+        for symbol, pos in self.positions.items():
+            if pos["quantity"] <= 1e-9 or symbol not in prices:
+                continue
+            change = (prices[symbol] - pos["avg_price"]) / pos["avg_price"]
+            if change <= -STOP_LOSS:
+                signals.append((symbol, "sell", pos["quantity"], prices[symbol],
+                                 f"stop loss {change * 100:.2f}%"))
+
+        stopped_out = {s[0] for s in signals}
+
         # Sell anything no longer in the top performers.
         for symbol, pos in self.positions.items():
+            if symbol in stopped_out:
+                continue
             if pos["quantity"] > 1e-9 and symbol not in top:
                 price = prices.get(symbol, pos["avg_price"])
                 signals.append((symbol, "sell", pos["quantity"], price,

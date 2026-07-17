@@ -28,6 +28,9 @@ class SocialMomentum(IntradayStrategy):
     TOP_EXIT = 20
     RANK_DROP_EXIT = 5
     MAX_MARKET_CAP_RANK = 1000
+    STOP_LOSS = 0.05  # -5% hard floor — a trending coin can keep trending
+                       # (rank stays fine) while its price craters; rank was
+                       # the only exit condition, no price floor existed.
 
     def __init__(self, name, budget, symbols, timeframe_minutes):
         super().__init__(name, budget, symbols, timeframe_minutes)
@@ -68,10 +71,18 @@ class SocialMomentum(IntradayStrategy):
             candles = candles_by_symbol.get(symbol) or []
             return candles[-1]["close"] if candles else None
 
-        # Exits: trending rank lost, dropped out of top-20, or fell 5+ places.
+        # Exits: stop loss, trending rank lost, dropped out of top-20, or fell 5+ places.
         for symbol, pos in self.positions.items():
             if pos["quantity"] <= 1e-9:
                 continue
+            price_now = last_price(symbol)
+            if price_now:
+                change = (price_now - pos["avg_price"]) / pos["avg_price"]
+                if change <= -self.STOP_LOSS:
+                    signals.append((symbol, "sell", pos["quantity"], price_now,
+                                     f"stop loss {change * 100:.2f}%"))
+                    open_positions -= 1
+                    continue
             new_rank = current_ranks.get(symbol)
             old_rank = prev_ranks.get(symbol)
             left_top_exit = new_rank is None or new_rank > self.TOP_EXIT
@@ -80,7 +91,7 @@ class SocialMomentum(IntradayStrategy):
                 and new_rank - old_rank >= self.RANK_DROP_EXIT
             )
             if left_top_exit or dropped_hard:
-                price = last_price(symbol) or pos["avg_price"]
+                price = price_now or pos["avg_price"]
                 reason = ("left trending" if new_rank is None
                           else f"rank #{new_rank} (was #{old_rank})")
                 signals.append((symbol, "sell", pos["quantity"], price, f"social momentum fading: {reason}"))

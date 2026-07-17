@@ -216,18 +216,32 @@ class LesEchosNewsStrategy(BaseStrategy):
         neg_threshold = config.get("negative_threshold", -0.2)
         pos_size = config.get("position_size_pct", 0.6)
         max_positions = config.get("max_positions", 5)
+        atr_stop_mult = config.get("atr_stop_mult", 2.0)
         section = config.get("section", "/finance-marches")
 
         # Fetch holdings from bot
         holdings = {h["symbol"]: h for h in (bot.get("holdings") or [])}
         current_positions = len(holdings)
+        signals = []
+
+        # ATR hard stop, independent of news sentiment — a held position with
+        # no fresh article never got a sell signal from this strategy before,
+        # so it could ride an arbitrary drawdown with no floor. Checked before
+        # the article fetch so it still fires even if that fetch fails/empty.
+        for ticker, h in holdings.items():
+            if self.atr_stop_triggered(bot, ticker, market_data, multiplier=atr_stop_mult):
+                df = market_data.get(ticker)
+                price = float(df["Close"].dropna().iloc[-1])
+                signals.append((ticker, "sell", h["quantity"], price))
+                current_positions -= 1
+                print(f"    🛑 STOP ATR {ticker} — position fermée")
 
         print(f"  [lesechos] 📰 Récupération des articles Échos...")
         articles = fetch_articles(section=section, limit=50)
 
         if not articles:
             print("  [lesechos] ⚠️ Pas d'articles récupérés")
-            return []
+            return signals
 
         print(f"  [lesechos] ✅ {len(articles)} articles analysés")
 
@@ -302,10 +316,13 @@ class LesEchosNewsStrategy(BaseStrategy):
             print(f"  [lesechos] {company_name:20s} score={avg_score:+.2f} ({len(company_articles)} arts)")
 
         # Generate signals
-        signals = []
+        stopped_out = {s[0] for s in signals}
         cash = bot.get("cash", 0)
 
         for ticker, info in company_scores.items():
+            if ticker in stopped_out:
+                continue
+
             score = info["avg_score"]
             article_count = info["article_count"]
 
