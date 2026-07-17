@@ -16,6 +16,7 @@ MIN_BUY_VOLUME_USD = 50_000
 MAX_POSITION_VOLUME_FRACTION = 0.02
 MICRO_VOLUME_THRESHOLD = 100_000  # 24h volume below this → value at cost
 MAX_DRAWDOWN_PCT = 0.25  # pause a bot once pnl drops below -25% of its budget
+PORTFOLIO_CIRCUIT_BREAKER_PCT = -10.0  # pause every bot once all 5 combined are down this much over 7 days
 
 
 class IntradayScheduler:
@@ -208,9 +209,11 @@ class IntradayScheduler:
         return price
 
     def _take_snapshots(self):
+        portfolio_total = 0.0
         for name, strat in self.strategies.items():
             prices = {s: self._valuation_price(strat, s, self._latest_price(s)) for s in strat.symbols}
             total_value = strat.portfolio_value(prices)
+            portfolio_total += total_value
             holdings_value = total_value - strat.cash
             pnl = total_value - strat.budget
             db.insert_snapshot(name, total_value, strat.cash, holdings_value, pnl)
@@ -227,6 +230,19 @@ class IntradayScheduler:
                 current_value = pos["quantity"] * price
                 unrealized_pnl = (price - pos["avg_price"]) * pos["quantity"]
                 db.upsert_position(name, symbol, pos["quantity"], pos["avg_price"], current_value, unrealized_pnl)
+
+        # Portfolio-level circuit breaker — catches a market-wide crypto
+        # selloff where every bot is quietly losing together (a single
+        # bot's own -25% stop doesn't fire on a correlated event that's
+        # only -10% for each one individually but hits all 5 at once).
+        week_ago_total = db.get_portfolio_total_before(24 * 7)
+        if week_ago_total and (portfolio_total - week_ago_total) / week_ago_total * 100 <= PORTFOLIO_CIRCUIT_BREAKER_PCT:
+            pnl_7d = (portfolio_total - week_ago_total) / week_ago_total * 100
+            for name, strat in self.strategies.items():
+                if not strat.paused:
+                    strat.paused = True
+                    print(f"[scheduler] {name} PAUSED by portfolio circuit breaker "
+                          f"(all bots combined: {pnl_7d:.1f}% over 7 days)")
 
     def _print_status(self):
         ts = datetime.now(timezone.utc).strftime("%H:%M:%S")

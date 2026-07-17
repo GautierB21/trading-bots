@@ -146,6 +146,13 @@ def update_bot_cash(bot_id, cash, conn=None):
         conn.close()
 
 
+def set_bot_active(bot_id, active):
+    conn = get_conn()
+    conn.execute("UPDATE bots SET active=? WHERE id=?", (1 if active else 0, bot_id))
+    conn.commit()
+    conn.close()
+
+
 def reset_bot(bot_id):
     conn = get_conn()
     try:
@@ -336,6 +343,25 @@ def get_leaderboard():
             ORDER BY COALESCE(ps.pnl_percent, 0) DESC
         """).fetchall()
         return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_portfolio_daily_totals(days=7):
+    """Sum of every active bot's total_value per snapshot_date, most recent
+    `days` calendar days — the input to the portfolio-level circuit breaker
+    (aggregate P&L across all bots, not any single bot's drawdown)."""
+    conn = get_conn()
+    try:
+        rows = conn.execute("""
+            SELECT ps.snapshot_date, SUM(ps.total_value) AS total
+            FROM portfolio_snapshots ps
+            JOIN bots b ON b.id = ps.bot_id
+            WHERE b.active=1 AND ps.snapshot_date >= date('now', ?)
+            GROUP BY ps.snapshot_date
+            ORDER BY ps.snapshot_date
+        """, (f"-{days} days",)).fetchall()
+        return [r["total"] for r in rows]
     finally:
         conn.close()
 

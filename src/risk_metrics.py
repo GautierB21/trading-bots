@@ -33,6 +33,21 @@ def calc_max_drawdown(values):
     return round(float(np.min(drawdowns) * 100), 2)
 
 
+def calc_current_drawdown(values):
+    """Drawdown (%) of the *latest* value from the running peak — distinct
+    from calc_max_drawdown, which reports the worst drawdown ever seen even
+    if the bot has since recovered. This is what a stop-bot check needs:
+    "am I underwater right now," not "was I ever underwater.\""""
+    values = np.asarray(values, dtype=float)
+    values = values[~np.isnan(values)]
+    if len(values) < 2:
+        return 0.0
+    peak = float(np.max(values))
+    if peak == 0:
+        return 0.0
+    return round(float((values[-1] - peak) / peak * 100), 2)
+
+
 def calc_win_rate(trades):
     """Percentage of closed trades with positive P&L."""
     closed = [t for t in trades if t.get("pnl") is not None]

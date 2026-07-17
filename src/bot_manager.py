@@ -2,7 +2,11 @@ import json
 from . import db
 from .data_fetcher import fetch_historical_data, fetch_current_prices
 from .portfolio import execute_order, take_snapshot, get_portfolio_summary
+from .risk_metrics import calc_current_drawdown
 from strategies import get_strategy
+
+BOT_DRAWDOWN_STOP_PCT = -15.0       # pause a single bot once it's down this much from its own peak
+PORTFOLIO_CIRCUIT_BREAKER_PCT = -10.0  # skip the whole run once all bots combined are down this much over 7 days
 
 
 DEFAULT_BOTS = [
@@ -175,10 +179,36 @@ def run_bot(bot_id):
     summary = get_portfolio_summary(bot_id, current_prices)
     print(f"  [{bot['name']}] Value: ${summary['total_value']:.2f} | P&L: {summary['pnl_percent']:.2f}%")
 
-    return {"signals_generated": len(signals), "signals_executed": executed, "summary": summary}
+    # Per-bot drawdown stop — checked from its own peak, not lifetime P&L,
+    # so a bot that already recovered from a past bad stretch isn't paused
+    # for something that's no longer true.
+    recent_values = [s["total_value"] for s in db.get_snapshots(bot_id, days=30)]
+    current_dd = calc_current_drawdown(recent_values)
+    if current_dd <= BOT_DRAWDOWN_STOP_PCT:
+        db.set_bot_active(bot_id, False)
+        print(f"  [{bot['name']}] STOPPED: drawdown {current_dd:.2f}% breached {BOT_DRAWDOWN_STOP_PCT}% — bot paused (active=0)")
+
+    return {
+        "signals_generated": len(signals), "signals_executed": executed, "summary": summary,
+        "current_drawdown_pct": current_dd, "paused": current_dd <= BOT_DRAWDOWN_STOP_PCT,
+    }
 
 
 def run_all_bots():
+    # Portfolio-level circuit breaker — a single bot's own -15% stop doesn't
+    # catch a market-wide event where every bot is quietly losing together
+    # (correlations -> 1 during stress, see cfa-finance skill). Skips the
+    # entire run (no new orders from any bot) rather than trying to
+    # distinguish "close a losing position" from "open a new one" per
+    # strategy, which would need touching every strategy's signal shape.
+    daily_totals = db.get_portfolio_daily_totals(days=7)
+    if len(daily_totals) >= 2 and daily_totals[0]:
+        portfolio_pnl_pct = (daily_totals[-1] - daily_totals[0]) / daily_totals[0] * 100
+        if portfolio_pnl_pct <= PORTFOLIO_CIRCUIT_BREAKER_PCT:
+            print(f"[bot_manager] CIRCUIT BREAKER: portfolio down {portfolio_pnl_pct:.2f}% "
+                  f"over 7 days (threshold {PORTFOLIO_CIRCUIT_BREAKER_PCT}%) — skipping this run entirely.")
+            return {"circuit_breaker": True, "portfolio_pnl_pct_7d": portfolio_pnl_pct}
+
     bots = db.get_all_bots(active_only=True)
     results = {}
     for bot in bots:

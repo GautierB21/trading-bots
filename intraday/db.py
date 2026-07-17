@@ -253,6 +253,25 @@ def insert_snapshot(bot_name, total_value, cash, holdings_value, pnl):
         conn.close()
 
 
+def get_portfolio_total_before(hours_ago):
+    """Sum of every bot's most recent snapshot at-or-before `hours_ago` hours
+    in the past — the baseline for the portfolio-level circuit breaker
+    ('how much has the whole portfolio moved over the last N hours')."""
+    conn = get_conn()
+    try:
+        rows = conn.execute("""
+            SELECT s1.bot_name, s1.total_value FROM intraday_snapshots s1
+            WHERE s1.snapshot_time = (
+                SELECT MAX(s2.snapshot_time) FROM intraday_snapshots s2
+                WHERE s2.bot_name = s1.bot_name
+                AND s2.snapshot_time <= datetime('now', ?)
+            )
+        """, (f"-{hours_ago} hours",)).fetchall()
+        return sum(r["total_value"] for r in rows)
+    finally:
+        conn.close()
+
+
 def get_latest_snapshot(bot_name):
     conn = get_conn()
     try:
