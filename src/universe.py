@@ -14,6 +14,8 @@ _SUFFIX_MARKETS = [
     (".AX", "🇪🇺 Other EU"),
     (".T", "🇯🇵 Japan"),
     (".HK", "🇭🇰 Hong Kong"),
+    (".KS", "🇰🇷 South Korea"),
+    (".KQ", "🇰🇷 South Korea"),
     (".TO", "🇨🇦 Canada"),
 ]
 

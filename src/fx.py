@@ -21,7 +21,7 @@ TARGET_CCY = "EUR"
 _SUFFIX_CCY = {
     ".PA": "EUR", ".DE": "EUR", ".AS": "EUR", ".MI": "EUR", ".MC": "EUR",
     ".L": "GBp", ".SW": "CHF", ".SIX": "CHF", ".T": "JPY", ".HK": "HKD",
-    ".TO": "CAD", ".AX": "AUD",
+    ".TO": "CAD", ".AX": "AUD", ".KS": "KRW", ".KQ": "KRW",
 }
 
 _FX_CACHE_TTL = 3600  # seconds — matches data_fetcher.CACHE_TTL; FX genuinely moves
